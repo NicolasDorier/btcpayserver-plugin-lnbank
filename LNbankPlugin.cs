@@ -22,7 +22,7 @@ namespace BTCPayServer.Plugins.LNbank
             new IBTCPayServerPlugin.PluginDependency
             {
                 Identifier = nameof(BTCPayServer),
-                Condition = ">=1.6.12.0"
+                Condition = ">=1.7.1.0"
             }
         };
         
