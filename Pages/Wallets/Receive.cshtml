@@ -1,0 +1,65 @@
+@page "/plugins/lnbank/wallets/{walletId}/receive"
+@model BTCPayServer.Plugins.LNbank.Pages.Wallets.ReceiveModel
+
+@{
+    ViewData.SetActivePage(LNbankNavPages.Wallet, "Receive", Model.Wallet.WalletId);
+}
+
+@section LNbankFoot {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<partial name="_WalletHeader" model="Model.Wallet"/>
+
+@if (!ModelState.IsValid)
+{
+    <div asp-validation-summary="All" class="alert alert-danger mb-4"></div>
+}
+
+<form method="post">
+    <div class="form-group">
+        <label asp-for="Amount" class="form-label" data-required></label>
+        <div class="input-group">
+            <input asp-for="Amount" class="form-control flex-grow-0 text-end hide-number-spin" type="number" aria-describedby="Amount-Addon" style="width:15ch;" autofocus required />
+            <span class="input-group-text" id="Amount-Addon">SATS</span>
+        </div>
+        <span asp-validation-for="Amount" class="text-danger"></span>
+    </div>
+    <div class="form-group mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <input asp-for="Description" class="form-control" style="max-width:70ch;" />
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+    <div class="form-group form-check">
+        <input asp-for="AttachDescription" class="form-check-input" type="checkbox">
+        <label asp-for="AttachDescription" class="form-label"></label>
+    </div>
+    <button class="d-inline-flex align-items-center btn btn-link text-primary fw-semibold p-0" type="button" id="AdvancedSettingsButton" data-bs-toggle="collapse" data-bs-target="#AdvancedSettings" aria-expanded="false" aria-controls="AdvancedSettings">
+        @await Component.InvokeAsync("Icon", new { symbol = "caret-down" })
+        <span class="ms-1">Advanced settings</span>
+    </button>
+    <div id="AdvancedSettings" class="collapse @(Model.PrivateRouteHints || Model.Expiry.HasValue ? "show" : "")">
+        <div class="pt-3 pb-1">
+            <div class="form-group">
+                <label asp-for="Expiry" class="form-label"></label>
+                <select asp-for="Expiry" class="form-select w-auto">
+                    <option value="">1 day (default)</option>
+                    <option value="10">10 minutes</option>
+                    <option value="60">1 hour</option>
+                    <option value="720">12 hours</option>
+                    <option value="2880">2 days</option>
+                    <option value="10080">1 week</option>
+                </select>
+            </div>
+            <div class="form-group d-flex align-items-center">
+                <input asp-for="PrivateRouteHints" type="checkbox" class="btcpay-toggle me-2"/>
+                <label asp-for="PrivateRouteHints" class="form-label mb-0"></label>
+            </div>
+        </div>
+    </div>
+    <div class="form-group pt-3">
+        <input type="submit" value="Create invoice" class="btn btn-primary" id="LNbank-CreateInvoice" />
+    </div>
+</form>
+
+<p class="mt-5 text-muted">Alternatively you can use <a asp-page="./ShareLNURL" asp-route-walletId="@Model.Wallet.WalletId" target="lnurl-@Model.Wallet.WalletId">LNURL</a> to receive to your wallet.</p>

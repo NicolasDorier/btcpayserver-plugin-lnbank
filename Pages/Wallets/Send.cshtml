@@ -1,0 +1,130 @@
+@page "/plugins/lnbank/wallets/{walletId}/send/{handler?}"
+@using BTCPayServer.Lightning
+@using BTCPayServer.Abstractions.Services
+@inject Safe Safe
+@model BTCPayServer.Plugins.LNbank.Pages.Wallets.SendModel
+
+@{
+    ViewData.SetActivePage(LNbankNavPages.Wallet, "Send", Model.Wallet.WalletId);
+    var initialStep = Model.Bolt11 == null && Model.LnurlPay == null;
+}
+
+@section LNbankFoot {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<partial name="_WalletHeader" model="Model.Wallet"/>
+
+@if (!ModelState.IsValid)
+{
+    <div asp-validation-summary="All" class="alert alert-danger mb-4"></div>
+}
+
+<form method="post" asp-page-handler="@(initialStep ? "decode" : "confirm")">
+    @if (initialStep)
+    {
+        <div class="form-group">
+            <label asp-for="Destination" class="form-label" data-required></label>
+            <textarea asp-for="Destination" class="form-control" rows="6" autofocus style="max-width:70ch;"></textarea>
+            <span asp-validation-for="Destination" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary" id="LNbank-Decode">
+                Decode / Lookup
+            </button>
+        </div>
+    }
+    else
+    {
+        <input asp-for="Destination" type="hidden" required />
+        @if (Model.PaymentRequest != null)
+        {
+            <input asp-for="PaymentRequest" type="hidden" required/>
+            
+            <p id="LNbank-Expiry">
+                Expires
+                @Model.Bolt11.ExpiryDate.ToTimeAgo()
+                <span class="text-muted">(@Model.Bolt11.ExpiryDate)</span>
+            </p>
+            
+            @if (Model.ExplicitAmount != null)
+            {
+                <div class="form-group">
+                    <label asp-for="ExplicitAmount" class="form-label" data-required></label>
+                    <div class="input-group">
+                        <input asp-for="ExplicitAmount" class="form-control flex-grow-0 text-end hide-number-spin" type="number" aria-describedby="ExplicitAmount-Addon" max="@Model.Wallet.Balance.ToUnit(LightMoneyUnit.Satoshi)" style="width:15ch;" autofocus required />
+                        <span class="input-group-text" id="ExplicitAmount-Addon">SATS</span>
+                    </div>
+                    <span asp-validation-for="ExplicitAmount" class="text-danger"></span>
+                </div>
+            }
+            else
+            {
+                <p>Amount: <strong id="LNbank-Amount">@Helpers.Sats(Model.Bolt11.MinimumAmount)</strong></p>
+            }
+        }
+        else
+        {
+            var identifier = Model.GetLnurlMetadata("text/identifier");
+            var longDesc = Model.GetLnurlMetadata("text/long-desc");
+            var image = Model.GetLnurlMetadata("image/png;base64") ?? Model.GetLnurlMetadata("image/jpeg;base64");
+            @if (!string.IsNullOrEmpty(image))
+            {
+                <img src="@Safe.Raw(image)" alt="@Safe.Raw(identifier)" id="LNbank-Image">
+            }
+            @if (!string.IsNullOrEmpty(identifier))
+            {
+                <p>Payee: <strong id="LNbank-Identifier">@Safe.Raw(identifier)</strong></p>
+            }
+            @if (!string.IsNullOrEmpty(longDesc))
+            {
+                <p id="LNbank-LongDescription">@Safe.Raw(longDesc)</p>
+            }
+            @if (Model.ExplicitAmount == null)
+            {
+                <dl class="row mb-0">
+                    <dt>Amount</dt>
+                    <dd id="LNbank-Amount">@Helpers.Sats(Model.LnurlPay.MinSendable)</dd>
+                </dl>
+            }
+            else
+            {
+                <div class="form-group">
+                    <label asp-for="ExplicitAmount" class="form-label" data-required></label>
+                    <input asp-for="ExplicitAmount" class="form-control text-end hide-number-spin" type="number" 
+                           min="@Model.LnurlPay.MinSendable.ToUnit(LightMoneyUnit.Satoshi)"
+                           max="@Math.Min(Model.Wallet.Balance.ToUnit(LightMoneyUnit.Satoshi), 
+                                    Model.LnurlPay.MaxSendable.ToUnit(LightMoneyUnit.Satoshi))"
+                           style="width:15ch;" autofocus required />
+                    <div class="form-text text-muted">
+                        Minimum: @Helpers.Sats(Model.LnurlPay.MinSendable) /
+                        Maximum: @Helpers.Sats(Math.Min(Model.Wallet.Balance, Model.LnurlPay.MaxSendable))
+                    </div>
+                    <span asp-validation-for="ExplicitAmount" class="text-danger"></span>
+                </div>
+            }
+            @if (Model.LnurlPay.CommentAllowed is > 0)
+            {
+                <div class="form-group">
+                    <label asp-for="Comment" class="form-label"></label>
+                    <input asp-for="Comment" class="form-control" maxlength="@Model.LnurlPay.CommentAllowed" autofocus style="max-width:70ch;" />
+                    <span asp-validation-for="Comment" class="text-danger"></span>
+                </div>
+            }
+        }
+        <div class="form-group">
+            <label asp-for="Description" class="form-label"></label>
+            <input asp-for="Description" class="form-control" autofocus style="max-width:70ch;" />
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary" id="LNbank-Send">
+                Send 
+                @if (Model.ExplicitAmount == null && (Model.Bolt11?.MinimumAmount ?? Model.LnurlPay?.MinSendable) != null)
+                {
+                    @Helpers.Sats(Model.Bolt11?.MinimumAmount ?? Model.LnurlPay?.MinSendable);
+                }
+            </button>
+        </div>
+    }
+</form>

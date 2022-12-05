@@ -1,0 +1,81 @@
+@page "/plugins/lnbank/wallets/{walletId}/access-keys/{handler?}"
+@using BTCPayServer.Plugins.LNbank.Data.Models
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using BTCPayServer.Abstractions.Models
+@using BTCPayServer.Plugins.LNbank.Extensions
+@model BTCPayServer.Plugins.LNbank.Pages.Wallets.AccessKeysModel
+
+@{
+    ViewData.SetActivePage(LNbankNavPages.WalletAccessKeys, $"Access keys for \"{Model.Wallet.Name}\"", Model.Wallet.WalletId);
+    var accessLevelOptions = new SelectList(typeof(AccessLevel).GetEnumNames().Select(o => 
+        new SelectListItem(typeof(AccessLevel).DisplayName(o), o)), 
+        nameof(SelectListItem.Value), nameof(SelectListItem.Text), Model.AccessKey?.Level);
+}
+
+@section LNbankFoot {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<partial name="_WalletHeader" model="Model.Wallet"/>
+<partial name="_Nav" model="Model.Wallet"/>
+
+<div class="row">
+    <div class="col-xxl-constrain">
+        <p>Give other registered BTCPay Server users access to your wallet.</p>
+
+        @if (!ViewContext.ModelState.IsValid)
+        {
+            <div asp-validation-summary="All" class="text-danger"></div>
+        }
+
+        <form method="post" asp-page-handler="add">
+            <div class="d-flex flex-wrap gap-3">
+                <div class="flex-grow-1">
+                    <input asp-for="AccessKey.Email" type="text" class="form-control" placeholder="user@example.com">
+                    <span asp-validation-for="AccessKey.Email" class="text-danger"></span>
+                </div>
+                <div>
+                    <select asp-for="AccessKey.Level" asp-items="@accessLevelOptions" class="form-select"></select>
+                </div>
+                <div>
+                    <button type="submit" role="button" class="btn btn-primary" id="LNbank-CreateAccessKey">Create Access Key</button>
+                </div>
+            </div>
+        </form>
+
+        @if (Model.AccessKeys.Any())
+        {
+            <div class="table-responsive" id="LNbank-AccessKeys">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Key</th>
+                        <th>Level</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var accessKey in Model.AccessKeys)
+                    {
+                        <tr>
+                            <td>@accessKey.Email</td>
+                            <td>@accessKey.Key</td>
+                            <td>@typeof(AccessLevel).DisplayName(accessKey.Level.ToString())</td>
+                            <td class="text-end">
+                                <a asp-page-handler="remove" asp-route-key="@accessKey.Key" data-bs-toggle="modal" data-bs-target="#ConfirmModal" data-description="This action will prevent <strong>@accessKey.Email</strong> from accessing this wallet." data-confirm-input="REMOVE">Remove</a>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p id="LNbank-AccessKeys" class="mt-4 text-secondary">There are no access keys yet.</p>
+        }
+    </div>
+</div>
+
+<partial name="_Confirm" model="@(new ConfirmModel("Remove access key", "This action will prevent the user from accessing this wallet. Are you sure?", "Remove"))" />

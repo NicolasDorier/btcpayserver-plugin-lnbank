@@ -1,0 +1,40 @@
+@page "/plugins/lnbank/lnurl/{walletId}"
+@using LNURL
+@model BTCPayServer.Plugins.LNbank.Pages.Wallets.ShareLNURLModel
+
+@{
+    Layout = "_LayoutSimple";
+    ViewData.SetActivePage(LNbankNavPages.Share, $"{Model.Wallet.Name} LNURL", Model.Wallet.WalletId);
+    var endpoint = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase.ToUriComponent()}/api/v1/lnbank/lnurl/{Model.Wallet.WalletId}/pay");
+    var lnurl = LNURL.EncodeUri(endpoint, "payRequest", true);
+}
+
+@section PageHeadContent {
+    <partial name="_LayoutLNbankHead" />
+}
+
+@section PageFootContent {
+    <partial name="_LayoutLNbankFoot" />
+}
+
+<main role="main" class="pb-3">
+    <div class="row justify-content-center mb-2">
+        <div class="col text-center">
+            <a asp-controller="UIHome" asp-action="Index" tabindex="-1">
+                <img src="~/img/btcpay-logo.svg" alt="BTCPay Server" class="mb-4" height="70" asp-append-version="true"/>
+            </a>
+            <h1 class="h2 mb-3">LNbank</h1>
+        </div>
+    </div>
+    <div class="row justify-content-center mb-5">
+        <div class="col text-center">
+            <h2 id="LNbank-TransactionDescription">@ViewData["Title"]</h2>
+            <p class="mx-auto">Use <a href="@lnurl" rel="noreferrer noopener">this LNURL</a> to pay an invoice to this wallet.</p>
+            <div class="qrcode">
+                @await Component.InvokeAsync("QRCode", new { data = lnurl.ToString().ToUpperInvariant() })
+            </div>
+        </div>
+    </div>
+</main>
+
+

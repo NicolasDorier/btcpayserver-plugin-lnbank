@@ -1,0 +1,67 @@
+﻿.qrcode {
+    display: inline-block;
+    max-width: 256px;
+}
+
+.qrcode svg {
+    display: block;
+    width: 100%;
+}
+
+main header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: .125rem 0 1.5rem;
+}
+
+main header h2 {
+    margin-bottom: 0;
+}
+
+main section > .container {
+    margin: 0;
+    padding: 0;
+}
+
+@media (max-width: 1399px) {
+    main section > .container {
+        max-width: none !important;
+    }
+}
+
+main section .row .table {
+    width: 100%;
+    margin-top: 0;
+}
+
+main p {
+    max-width: 40em;
+}
+
+main dt {
+    color: var(--btcpay-form-text-label);
+    font-weight: var(--btcpay-body-font-weight);
+    margin-bottom: var(--btcpay-space-xs);
+}
+
+main dd {
+    margin-bottom: var(--btcpay-space-m);
+}
+
+main svg[role="img"]:not(.icon) {
+    width: 1em;
+    height: 1em;
+}
+
+main table .transaction-edit {
+    visibility: hidden;
+}
+
+main table .transaction-paid {
+    opacity: .615;
+}
+
+main table tr:hover .transaction-edit {
+    visibility: visible;
+}

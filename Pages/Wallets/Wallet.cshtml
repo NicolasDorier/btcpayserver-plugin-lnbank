@@ -1,0 +1,120 @@
+@page "/plugins/lnbank/wallets/{walletId}"
+@using System.Globalization
+@using BTCPayServer.Abstractions.Services
+@using BTCPayServer.Lightning
+@using BTCPayServer.Plugins.LNbank.Data.Models
+@inject Safe Safe
+@model BTCPayServer.Plugins.LNbank.Pages.Wallets.WalletModel
+
+@{
+    ViewData.SetActivePage(LNbankNavPages.Wallet, Model.Wallet.Name, Model.Wallet.WalletId);
+    var pendingTransactionIds = Model.Transactions.Where(t => t.IsPending).Select(t => t.TransactionId);
+}
+
+@functions
+{
+    private string Tooltip(Transaction transaction)
+    {
+        var tt = transaction.IsSettled ? "" : "Awaiting settlement. ";
+        if (transaction.HasRoutingFee) tt += $"Includes {Helpers.Millisats(transaction.RoutingFee)} routing fee.";
+        return string.IsNullOrEmpty(tt) ? null : tt;
+    }
+}
+
+<partial name="_WalletHeader" model="Model.Wallet"/>
+
+@if (Model.Transactions.Any())
+{
+    <div class="row">
+        <div class="col table-responsive-md">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th class="w-150px">
+                        <div class="d-flex align-items-center gap-1">
+                            Date
+                            <button type="button" class="btn btn-link p-0 fa fa-clock-o switch-time-format" title="Switch date format"></button>
+                        </div>
+                    </th>
+                    <th>Description</th>
+                    <th class="text-end">Amount</th>
+                    <th class="text-end">Settled</th>
+                </tr>
+                </thead>
+                <tbody id="LNbank-WalletTransactions">
+                @foreach (var transaction in Model.Transactions)
+                {
+                    <tr id="LNbank-Transaction-@transaction.TransactionId">
+                        <td>
+                            <a asp-page="/Transactions/Details" asp-route-walletId="@Model.Wallet.WalletId" asp-route-transactionId="@transaction.TransactionId" class="transaction-details">
+                                @transaction.CreatedAt.ToBrowserDate(ViewsRazor.DateDisplayFormat.Relative)
+                            </a>
+                        </td>
+                        <td>
+                            <span class="transaction-description text-break">@transaction.Description</span>
+                            <a asp-page="/Transactions/Edit" asp-route-walletId="@Model.Wallet.WalletId" asp-route-transactionId="@transaction.TransactionId" class="transaction-edit">
+                                Edit
+                            </a>
+                        </td>
+                        <td class="text-nowrap text-end transaction-amount" data-amount="@transaction.Amount.ToUnit(LightMoneyUnit.MilliSatoshi)">
+                            @Helpers.Sats(transaction.Amount)
+                        </td>
+                        <td class="text-nowrap text-end">
+                            @if (transaction.IsPaid || transaction.IsSettled || transaction.IsPending)
+                            {
+                                <span class="text-@Helpers.TransactionStateClass(transaction) transaction-@(transaction.Status.ToLower())" data-amount-settled="@transaction.AmountSettled.ToUnit(LightMoneyUnit.MilliSatoshi)" data-transaction-fee="@transaction.RoutingFee?.ToUnit(LightMoneyUnit.MilliSatoshi)" data-bs-toggle="tooltip" data-bs-placement="left" title="@Tooltip(transaction)">
+                                    @Helpers.Sats(transaction.AmountSettled)
+                                </span>
+                                @if (transaction.IsPending)
+                                {
+                                    <span class="text-@Helpers.TransactionStateClass(transaction) transaction-status">
+                                        @transaction.Status
+                                    </span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-@Helpers.TransactionStateClass(transaction) transaction-status">
+                                    @transaction.Status
+                                </span>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    @if (pendingTransactionIds.Any())
+    {
+        <script>
+            (function () {
+                const pending = @Safe.Json(pendingTransactionIds);
+                window.LNbank.hubs.push({
+                    id: 'transaction',
+                    handlers: {
+                        'transaction-update': data => {
+                            if (pending.includes(data.transactionId)) {
+                                window.location.reload();
+                            }
+                        }
+                    }
+                })
+            })()
+        </script>
+    }
+    
+    <a class="btn btn-secondary dropdown-toggle mt-4 ms-auto" href="#" role="button" id="ExportDropdownToggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Export
+    </a>
+    <div class="dropdown-menu" aria-labelledby="ExportDropdownToggle">
+        <a asp-controller="Export" asp-action="Export" asp-route-walletId="@Model.Wallet.WalletId" asp-route-format="csv" class="dropdown-item export-link" target="_blank">CSV</a>
+        <a asp-controller="Export" asp-action="Export" asp-route-walletId="@Model.Wallet.WalletId" asp-route-format="json" class="dropdown-item export-link" target="_blank">JSON</a>
+    </div>
+}
+else
+{
+    <p id="LNbank-WalletTransactions" class="text-secondary">There are no transactions yet.</p>
+}
+

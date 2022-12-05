@@ -1,0 +1,96 @@
+﻿@using BTCPayServer.Data
+@using BTCPayServer.Plugins.LNbank.Data.Models
+@using BTCPayServer.Plugins.LNbank.Services.Wallets
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Routing
+@model object
+@inject UserManager<ApplicationUser> _userManager;
+@inject WalletRepository _walletRepository;
+
+@{
+    const AccessLevel requiredLevel = AccessLevel.Admin;
+    var userId = _userManager.GetUserId(User);
+    var wallets = (await _walletRepository.GetWallets(new WalletsQuery
+    {
+        UserId = new[] { userId },
+        IncludeAccessKeys = true
+    })).Where(w => w.AccessKeys.Any(ak => ak.UserId == userId && ak.Level == requiredLevel));
+    var storeId = Context.GetRouteValue("storeId");
+    var cryptoCode = Context.GetRouteValue("cryptoCode");
+    var baseUrl = Context.Request.PathBase.ToUriComponent();
+    var createWalletUrl = $"{baseUrl}/plugins/lnbank/wallets/create?ReturnUrl={baseUrl}/stores/{storeId}/lightning/{cryptoCode}/setup";
+}
+
+<div id="LNbankSetup" class="pt-3 tab-pane fade" role="tabpanel" aria-labelledby="LightningNodeType-LNbank">
+    <div class="form-group">
+        <div class="d-flex align-items-center justify-content-between">
+            <label class="form-label" for="LNbankWallet">LNbank Wallet</label>
+            <a href="@createWalletUrl" id="LNbank-CreateWallet" class="d-inline-block ms-2 btn text-primary btn-link p-0 mb-2">
+                <span class="fa fa-plus"></span> Create new wallet
+            </a>
+        </div>
+        <select id="LNbankWallet" class="form-select">
+            <option value="">Select a wallet</option>
+            @foreach (var wallet in wallets)
+            {
+                <option value="@wallet.AccessKeys.First(ak => ak.Level == requiredLevel).Key" data-wallet-id="@wallet.WalletId">@wallet.Name</option>
+            }
+        </select>
+    </div>
+</div>
+
+<script>
+    const typePrefix = 'type=lnbank;server=@Context.Request.Scheme://@Context.Request.Host@Context.Request.PathBase.ToUriComponent()'
+    const walletEl = document.getElementById('LNbankWallet')
+    const triggerEl = document.getElementById('LightningNodeType-LNbank')
+    const connStringEl = document.getElementById('ConnectionString')
+    const connString = connStringEl.value
+    const [, apiToken] = (connString.match(/api-token=([\w]*)/) || [])
+    const [, walletId] = (window.location.search.match(/LNbankWallet=(.*?)&?$/) || [])
+    const isLNbank = connString.startsWith(typePrefix) || walletId
+    const setWallet = accessKey => connStringEl.value = accessKey.length 
+        ? `${typePrefix};api-token=${accessKey}@(Context.Request.IsHttps ? "" : ";allowinsecure=true")`
+        : ''
+    
+    if (isLNbank) {
+        if (apiToken) {
+            walletEl.value = apiToken
+        } else if (walletId) {
+            const optionEl = document.querySelector(`option[data-wallet-id="${walletId}"]`)
+            if (optionEl) {
+                const accessKey = optionEl.getAttribute('value')
+                walletEl.value = accessKey
+                setWallet(accessKey)
+            }
+        }
+        
+        // deactivate currently active tab and activate LNbank tab
+        const activeEl = document.querySelector('input[name="LightningNodeType"]:checked')
+        if (activeEl) {
+            activeEl.removeAttribute('checked')
+            activeEl.setAttribute('aria-selected', 'false')
+            document.querySelector('#LightningNodeTypeTabs .tab-pane.active').classList.remove('active', 'show')
+            triggerEl.setAttribute('checked', 'checked')
+            triggerEl.setAttribute('aria-selected', 'true')
+            document.getElementById('LNbankSetup').classList.add('active', 'show')
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        if (isLNbank) {
+            const tabTrigger = new bootstrap.Tab(triggerEl)
+            triggerEl.checked = true
+            tabTrigger.show()
+        }
+        
+        delegate('change', '#LNbankWallet', e => {
+            const { value } = e.target
+            setWallet(value)
+            const tabTrigger = new bootstrap.Tab(triggerEl)
+            triggerEl.checked = true
+            tabTrigger.show()
+        })
+    })
+</script>
+
+

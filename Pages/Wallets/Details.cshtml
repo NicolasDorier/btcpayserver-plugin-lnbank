@@ -1,0 +1,75 @@
+@page "/plugins/lnbank/wallets/{walletId}/details"
+@using BTCPayServer.Plugins.LNbank.Data.Models
+@model BTCPayServer.Plugins.LNbank.Pages.Wallets.DetailsModel
+
+@{
+    ViewData.SetActivePage(LNbankNavPages.WalletSettings, Model.Wallet.Name, Model.Wallet.WalletId);
+    string lndhubUrl = null;
+    var adminKey = Model.Wallet.AccessKeys.FirstOrDefault(ak => ak.Level == AccessLevel.Admin);
+    if (adminKey != null)
+    {
+        var endpoint = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase.ToUriComponent()}/plugins/lnbank/api/lndhub");
+        lndhubUrl = $"lndhub://{Model.Wallet.WalletId}:{adminKey.Key}@{endpoint}";
+    }
+}
+
+<partial name="_WalletHeader" model="Model.Wallet"/>
+<partial name="_Nav" model="Model.Wallet"/>
+
+<dl class="row">
+    <dt class="col-sm-3 col-xl-2">
+        @Html.DisplayNameFor(model => model.Wallet.Name)
+    </dt>
+    <dd class="col-sm-9 col-xl-10">
+        <span id="LNbank-WalletName">@Model.Wallet.Name</span>
+        <a asp-page="./Edit" asp-route-walletId="@Model.Wallet.WalletId" class="ms-2">
+            Edit
+        </a>
+    </dd>
+    <dt class="col-sm-3 col-xl-2">
+        @Html.DisplayNameFor(model => model.Wallet.WalletId)
+    </dt>
+    <dd class="col-sm-9 col-xl-10" id="LNbank-WalletId">
+        @Model.Wallet.WalletId
+    </dd>
+    <dt class="col-sm-3 col-xl-2">
+        @Html.DisplayNameFor(model => model.Wallet.CreatedAt)
+    </dt>
+    <dd class="col-sm-9 col-xl-10">
+        @Model.Wallet.CreatedAt
+    </dd>
+    <dt class="col-sm-3 col-xl-2">
+        LNURL
+    </dt>
+    <dd class="col-sm-9 col-xl-10">
+        <a asp-page="./ShareLNURL" asp-route-walletId="@Model.Wallet.WalletId">Receive</a>
+    </dd>
+</dl>
+
+<a asp-page="./Delete" asp-route-walletId="@Model.Wallet.WalletId" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center mt-4">
+    Delete Wallet
+</a>
+
+@if (!string.IsNullOrEmpty(lndhubUrl))
+{
+    <h3 class="mt-5 mb-3">Connect LNDhub-compatible wallet</h3>
+    
+    <p>
+        With the QR code/account URL below, you can connect any wallet that is compatible with the LNDhub protocol.
+        This is supported by <a href="https://bluewallet.io/" target="_blank" rel="noreferrer noopener">BlueWallet</a>, 
+        <a href="https://zeusln.app/" target="_blank" rel="noreferrer noopener">Zeus</a> and 
+        <a href="https://getalby.com/" target="_blank" rel="noreferrer noopener">Alby</a>.
+    </p>
+    <p>These credentials allow unrestricted access to your LNbank wallet. Treat it as confidential information.</p>
+
+    <div id="LNbank-LNDhubQR" class="collapse">
+        <div class="qrcode">
+            @await Component.InvokeAsync("QRCode", new { data = lndhubUrl })
+        </div>
+    </div>
+
+    <div class="mt-4 d-grid d-sm-flex gap-3">
+        <button class="btn btn-secondary" type="button" id="LNbank-ToggleLNDhubQR" data-bs-toggle="collapse" data-bs-target="#LNbank-LNDhubQR" aria-expanded="false" aria-controls="LNbank-LNDhubQR">Show QR code</button>
+        <button class="btn btn-secondary" type="button" id="LNbank-CopyLndhubUrl" data-clipboard="@lndhubUrl">Copy account URL</button>
+    </div>
+}
