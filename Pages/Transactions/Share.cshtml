@@ -63,12 +63,11 @@
         
                 @if (!Model.Transaction.IsExpired && !Model.Transaction.IsCancelled)
                 {                                                                                                               
-                    <div class="qrcode my-4">
+                    <div class="qrcode mt-4" data-clipboard-confirm-element="LNbank-QRText" data-clipboard="@Model.Transaction.PaymentRequest" id="LNbank-QRContainer">
                         @await Component.InvokeAsync("QRCode", new { data = Model.Transaction.PaymentRequest })
                     </div>
-                    
-                    <div>
-                        <button class="btn btn-primary" type="button" data-clipboard="@Model.Transaction.PaymentRequest">Copy payment request</button>
+                    <div class="mt-2 mb-4">
+                        <small id="LNbank-QRText" class="qrtext">Scan the QR code, or tap to copy the address.</small>
                     </div>
                         
                     <script>
