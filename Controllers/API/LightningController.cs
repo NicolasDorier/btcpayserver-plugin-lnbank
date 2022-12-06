@@ -147,7 +147,8 @@ public class LightningController : ControllerBase
                 IncludingPaid = !onlyPending,
                 IncludingExpired = !onlyPending,
                 IncludingInvalid = !onlyPending,
-                IncludingCancelled = !onlyPending
+                IncludingCancelled = !onlyPending,
+                Type = TransactionType.Invoice
             };
             var offset = Convert.ToInt32(offsetIndex);
             var transactions = (await _walletRepository.GetTransactions(query)).Skip(offset);
@@ -176,6 +177,37 @@ public class LightningController : ControllerBase
         
             var invoice = ToLightningInvoiceData(transaction);
             return Ok(invoice);
+        }
+        catch (Exception exception)
+        {
+            return this.CreateAPIError("generic-error", exception.Message);
+        }
+    }
+
+    [HttpGet("payments")]
+    public async Task<IActionResult> ListLightningPayments(
+        [FromQuery(Name = "include_pending")] bool? includePending,
+        [FromQuery(Name = "offset_index")] long? offsetIndex)
+    {
+        try
+        {
+            var includingPending = includePending is true;
+            var query = new TransactionsQuery
+            {
+                UserId = UserId,
+                WalletId = WalletId,
+                IncludingPending = includingPending,
+                IncludingPaid = true,
+                IncludingExpired = true,
+                IncludingInvalid = true,
+                IncludingCancelled = true,
+                Type = TransactionType.Payment
+            };
+            var offset = Convert.ToInt32(offsetIndex);
+            var transactions = (await _walletRepository.GetTransactions(query)).Skip(offset);
+            
+            var payments = transactions.Select(ToLightningPaymentData);
+            return Ok(payments);
         }
         catch (Exception exception)
         {
@@ -244,6 +276,19 @@ public class LightningController : ControllerBase
             PaidAt = transaction.PaidAt,
             BOLT11 = transaction.PaymentRequest,
             ExpiresAt = transaction.ExpiresAt
+        };
+
+    private LightningPaymentData ToLightningPaymentData(Transaction transaction) => 
+        new()
+        {
+            Id = transaction.InvoiceId,
+            PaymentHash = transaction.PaymentHash,
+            Status = transaction.LightningPaymentStatus,
+            BOLT11 = transaction.PaymentRequest,
+            Preimage = _walletService.ParsePaymentRequest(transaction.PaymentRequest).PaymentSecret?.ToString(),
+            CreatedAt = transaction.PaidAt,
+            TotalAmount = transaction.AmountSettled,
+            FeeAmount = transaction.RoutingFee,
         };
 
     private async Task<Wallet> GetWalletWithTransactions(string walletId)

@@ -82,6 +82,21 @@ public class Transaction
         };
     }
 
+    public LightningPaymentStatus LightningPaymentStatus
+    {
+        get => Status switch
+        {
+            StatusSettled => LightningPaymentStatus.Complete,
+            StatusPaid => LightningPaymentStatus.Complete,
+            StatusUnpaid => LightningPaymentStatus.Pending,
+            StatusPending => LightningPaymentStatus.Pending,
+            StatusExpired => LightningPaymentStatus.Failed,
+            StatusInvalid => LightningPaymentStatus.Failed,
+            StatusCancelled => LightningPaymentStatus.Failed,
+            _ => throw new NotSupportedException($"'{Status}' cannot be mapped to any LightningPaymentStatus")
+        };
+    }
+
     public bool IsSettled => Status == StatusSettled;
     public bool IsPaid => Status == StatusPaid || IsSettled;
     public bool IsUnpaid => !IsPaid;

@@ -292,6 +292,13 @@ public class WalletRepository
             queryable = queryable.Where(t => t.ExplicitStatus != Transaction.StatusExpired);
         }
 
+        queryable = query.Type switch
+        {
+            TransactionType.Invoice => queryable.Where(t => t.InvoiceId != null),
+            TransactionType.Payment => queryable.Where(t => t.InvoiceId == null),
+            _ => queryable
+        };
+
         return await queryable.ToListAsync();
     }
 }
