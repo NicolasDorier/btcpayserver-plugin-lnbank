@@ -3,6 +3,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using BTCPayServer.Client;
+using BTCPayServer.Client.Models;
 using BTCPayServer.Lightning;
 using BTCPayServer.Plugins.LNbank.Data.Models;
 using BTCPayServer.Plugins.LNbank.Exceptions;
@@ -26,7 +27,7 @@ public class WalletService
     private readonly IHubContext<TransactionHub> _transactionHub;
     private readonly LNbankPluginDbContextFactory _dbContextFactory;
 
-    public static readonly TimeSpan SendTimeout = TimeSpan.FromSeconds(20);
+    public static readonly TimeSpan SendTimeout = TimeSpan.FromSeconds(21);
 
     public WalletService(
         ILogger<WalletService> logger,
@@ -213,19 +214,17 @@ public class WalletService
 
         try
         {
-            // Pay the invoice - cancel after timeout, potentially caused by hold invoices
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(SendTimeout);
-
             // Pass explicit amount only for zero amount invoices, because the implementations might throw an exception otherwise
             var bolt11 = ParsePaymentRequest(sendingTransaction.PaymentRequest);
-            var request = new LightningInvoicePayRequest
+            var request = new PayLightningInvoiceRequest
             {
-                PaymentRequest = sendingTransaction.PaymentRequest,
+                BOLT11 = sendingTransaction.PaymentRequest,
                 MaxFeePercent = maxFeePercent,
-                Amount = bolt11.MinimumAmount == LightMoney.Zero ? amount : null
+                Amount = bolt11.MinimumAmount == LightMoney.Zero ? amount : null,
+                SendTimeout = SendTimeout
             };
-            var result = await _btcpayService.PayLightningInvoice(request, cts.Token);
+                
+            var result = await _btcpayService.PayLightningInvoice(request, cancellationToken);
 
             // Check result
             if (result.TotalAmount == null)

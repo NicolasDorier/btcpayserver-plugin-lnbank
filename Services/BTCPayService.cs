@@ -30,15 +30,10 @@ public class BTCPayService
         });
     }
         
-    public async Task<LightningPaymentData> PayLightningInvoice(LightningInvoicePayRequest req, CancellationToken cancellationToken = default)
+    public async Task<LightningPaymentData> PayLightningInvoice(PayLightningInvoiceRequest req, CancellationToken cancellationToken = default)
     {
         var client = await Client();
-        return await client.PayLightningInvoice(CryptoCode, new PayLightningInvoiceRequest
-        {
-            BOLT11 = req.PaymentRequest,
-            MaxFeePercent = req.MaxFeePercent,
-            Amount = req.Amount
-        }, cancellationToken);
+        return await client.PayLightningInvoice(CryptoCode, req, cancellationToken);
     }
 
     public async Task<LightningPaymentData> GetLightningPayment(string paymentHash, CancellationToken cancellationToken = default)
