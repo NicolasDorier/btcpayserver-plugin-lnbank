@@ -47,16 +47,14 @@ public class LightningController : ControllerBase
     // --- Custom methods ---
 
     [HttpPost("invoice")]
-    public async Task<IActionResult> CreateLightningInvoice(LightningInvoiceCreateRequest req)
+    public async Task<IActionResult> CreateLightningInvoice(CreateLightningInvoiceRequest req)
     {
         if (Wallet == null) return this.CreateAPIError(404, "wallet-not-found", "The wallet was not found");
 
         try
         {
-            var transaction = req.Description is null
-                ? await _walletService.Receive(Wallet, req.Amount, req.DescriptionHash, req.PrivateRouteHints, req.Expiry)
-                : await _walletService.Receive(Wallet, req.Amount, req.Description, true, req.PrivateRouteHints, req.Expiry);
-              
+            var memo = !req.DescriptionHashOnly && !string.IsNullOrEmpty(req.Description) ? req.Description : null;
+            var transaction = await _walletService.Receive(Wallet, req, memo);
             var data = ToLightningInvoiceData(transaction);
             return Ok(data);
         }

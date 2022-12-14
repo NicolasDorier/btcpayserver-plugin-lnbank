@@ -28,6 +28,7 @@ public class WalletService
     private readonly LNbankPluginDbContextFactory _dbContextFactory;
 
     public static readonly TimeSpan SendTimeout = TimeSpan.FromSeconds(21);
+    public static readonly TimeSpan ExpiryDefault = TimeSpan.FromDays(1);
 
     public WalletService(
         ILogger<WalletService> logger,
@@ -58,30 +59,12 @@ public class WalletService
         var payment = await _btcpayService.GetLightningPayment(paymentHash);
         return payment?.Status == LightningPaymentStatus.Complete;
     }
-    
-    public async Task<Transaction> Receive(Wallet wallet, long amount, string description, bool attachDescription, bool privateRouteHints, TimeSpan? expiry, CancellationToken cancellationToken = default) =>
-        await Receive(wallet, amount, description, null, attachDescription, privateRouteHints, expiry, cancellationToken);
-    
-    public async Task<Transaction> Receive(Wallet wallet, long amount, string description, uint256? descriptionHash, CancellationToken cancellationToken = default) =>
-        await Receive(wallet, amount, description, descriptionHash, false, false, null, cancellationToken);
-        
-    public async Task<Transaction> Receive(Wallet wallet, long amount, uint256? descriptionHash, bool privateRouteHints, TimeSpan? expiry, CancellationToken cancellationToken = default) =>
-        await Receive(wallet, amount, null, descriptionHash, false, privateRouteHints, expiry, cancellationToken);
 
-    private async Task<Transaction> Receive(Wallet wallet, long amount, string? description, uint256? descriptionHash, bool attachDescription, bool privateRouteHints, TimeSpan? expiry, CancellationToken cancellationToken = default)
+    public async Task<Transaction> Receive(Wallet wallet, CreateLightningInvoiceRequest req, string? memo = null, CancellationToken cancellationToken = default)
     {
-        if (amount < 0) throw new ArgumentException("Amount should be a non-negative value", nameof(amount));
-        if (expiry <= TimeSpan.Zero) throw new ArgumentException("Expiry should be more than 0", nameof(expiry));
+        if (req.Amount < 0) throw new ArgumentException("Amount should be a non-negative value", nameof(req.Amount));
 
-        var desc = attachDescription && !string.IsNullOrEmpty(description) ? description : string.Empty;
-        var data = await _btcpayService.CreateLightningInvoice(new LightningInvoiceCreateRequest
-        {
-            Amount = amount,
-            Description = desc,
-            DescriptionHash = descriptionHash,
-            PrivateRouteHints = privateRouteHints,
-            Expiry = expiry ?? LightningInvoiceCreateRequest.ExpiryDefault
-        });
+        var data = await _btcpayService.CreateLightningInvoice(req);
 
         await using var dbContext = _dbContextFactory.CreateContext();
         var bolt11 = ParsePaymentRequest(data.BOLT11);
@@ -93,7 +76,7 @@ public class WalletService
             ExpiresAt = data.ExpiresAt,
             PaymentRequest = data.BOLT11,
             PaymentHash = bolt11.PaymentHash?.ToString(),
-            Description = description
+            Description = memo
         }, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);

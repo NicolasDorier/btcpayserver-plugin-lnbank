@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using BTCPayServer.Abstractions.Constants;
+using BTCPayServer.Client.Models;
 using BTCPayServer.Data;
 using BTCPayServer.Lightning;
 using BTCPayServer.Plugins.LNbank.Authentication;
@@ -71,8 +72,17 @@ public class ReceiveModel : BasePageModel
         try
         {
             var amount = LightMoney.Satoshis(Amount).MilliSatoshi;
-            TimeSpan? expiry = Expiry is > 0 ? TimeSpan.FromMinutes(Expiry.Value) : null;
-            var transaction = await WalletService.Receive(Wallet, amount, Description, AttachDescription, PrivateRouteHints, expiry);
+            var expiry = Expiry is > 0 ? TimeSpan.FromMinutes(Expiry.Value) : WalletService.ExpiryDefault;
+            var req = new CreateLightningInvoiceRequest
+            {
+                Amount = amount,
+                Expiry = expiry,
+                Description = Description,
+                PrivateRouteHints = PrivateRouteHints
+            };
+            
+            var memo = AttachDescription && !req.DescriptionHashOnly && !string.IsNullOrEmpty(req.Description) ? req.Description : null;
+            var transaction = await WalletService.Receive(Wallet, req, memo);
             return RedirectToPage("/Transactions/Details", new { walletId, transaction.TransactionId });
         }
         catch (Exception exception)

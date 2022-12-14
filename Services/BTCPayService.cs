@@ -17,17 +17,10 @@ public class BTCPayService
         _clientFactory = clientFactory;
     }
 
-    public async Task<LightningInvoiceData> CreateLightningInvoice(LightningInvoiceCreateRequest req)
+    public async Task<LightningInvoiceData> CreateLightningInvoice(CreateLightningInvoiceRequest req)
     {
         var client = await Client();
-        return await client.CreateLightningInvoice(CryptoCode, new CreateLightningInvoiceRequest
-        {
-            Amount = req.Amount,
-            Description = req.Description,
-            DescriptionHash = req.DescriptionHash,
-            Expiry = req.Expiry,
-            PrivateRouteHints = req.PrivateRouteHints
-        });
+        return await client.CreateLightningInvoice(CryptoCode, req);
     }
         
     public async Task<LightningPaymentData> PayLightningInvoice(PayLightningInvoiceRequest req, CancellationToken cancellationToken = default)

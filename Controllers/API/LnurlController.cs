@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using BTCPayServer.Abstractions.Extensions;
+using BTCPayServer.Client.Models;
 using BTCPayServer.Lightning;
 using BTCPayServer.Plugins.LNbank.Services.Wallets;
 using LNURL;
@@ -75,8 +76,14 @@ public class LnurlController : ControllerBase
 
         try
         {
-            var descriptionHash = new uint256(Hashes.SHA256(Encoding.UTF8.GetBytes(meta)), false);
-            Transaction transaction = await _walletService.Receive(wallet, amount.Value, comment, descriptionHash);
+            var req = new CreateLightningInvoiceRequest
+            {
+                Amount = amount.Value,
+                Description = meta,
+                DescriptionHashOnly = true,
+                Expiry = WalletService.ExpiryDefault
+            };
+            Transaction transaction = await _walletService.Receive(wallet, req, comment);
             
             var paymentRequest = transaction.PaymentRequest;
             if (_walletService.ValidateDescriptionHash(paymentRequest, meta))

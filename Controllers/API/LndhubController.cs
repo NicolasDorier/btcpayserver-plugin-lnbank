@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BTCPayServer.Client.Models;
 using BTCPayServer.Lightning.LNDhub.Models;
 using BTCPayServer.Plugins.LNbank.Authentication;
 using BTCPayServer.Plugins.LNbank.Data.Models;
@@ -13,6 +14,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using NBitcoin;
+using CreateInvoiceRequest = BTCPayServer.Lightning.LNDhub.Models.CreateInvoiceRequest;
+using InvoiceData = BTCPayServer.Lightning.LNDhub.Models.InvoiceData;
 using Transaction = BTCPayServer.Plugins.LNbank.Data.Models.Transaction;
 
 namespace BTCPayServer.Plugins.LNbank.Controllers.API;
@@ -188,9 +191,15 @@ public class LndhubController : ControllerBase
     {
         try
         {
-            var transaction = await (request.DescriptionHash != null
-                ? _walletService.Receive(Wallet, request.Amount, request.Memo, request.DescriptionHash)
-                : _walletService.Receive(Wallet, request.Amount, request.Memo, true, true, LightningInvoiceCreateRequest.ExpiryDefault));
+            var req = new CreateLightningInvoiceRequest
+            {
+                Amount = request.Amount,
+                Description = request.DescriptionHash != null ? request.DescriptionHash.ToString() : request.Memo,
+                DescriptionHashOnly = request.DescriptionHash != null,
+                Expiry = WalletService.ExpiryDefault,
+                PrivateRouteHints = true
+            };
+            var transaction = await _walletService.Receive(Wallet, req, request.Memo);
             var invoice = ToInvoiceData(transaction);
         
             return Ok(invoice);
