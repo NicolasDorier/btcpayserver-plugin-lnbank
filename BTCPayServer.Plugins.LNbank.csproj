@@ -20,7 +20,7 @@
     <EmbeddedResource Include="Resources\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BTCPayServer.Lightning.LNDhub" Version="1.0.11" />
+    <PackageReference Include="BTCPayServer.Lightning.LNDhub" Version="1.0.12" />
     <PackageReference Include="CsvHelper" Version="15.0.5" />
     <PackageReference Include="LNURL" Version="0.0.26" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">
