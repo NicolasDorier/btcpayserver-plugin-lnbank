@@ -35,9 +35,6 @@ Once the wallet is imported, you can also set a name.
 
 ### Zeus
 
-Unfortunately there is an [issue with Zeus, which prevents import via QR scan](https://github.com/ZeusLN/zeus/issues/1081).
-Until this is fixed you have to import the wallet by entrering the details manually.
-
 In Zeus you can use this path to import the wallet:
 
 * Open the settings by clicking on the node icon in the top left corner.
@@ -48,25 +45,7 @@ You will land on the following screen and have to …
 
 * Choose "LNDHub" as the "Node Interface"
 * Enable the "Existing account" toggle
-
-![Zeus Settings to import a LNbank wallet](./img/zeus-settings.png)
-
-On that screen you then have to fill in the host, username and password fields.
-The values for these fields are included in the account URL which you can copy on the LNbank wallet settings page.
-
-Copy the account URL and paste it into a note app on your mobile device.
-It consists of the following parts:
-
-`lndhub:// USERNAME : PASSWORD @ HOST`
-
-You can ignore the `lndhub://` part, the username and password are separated by an `:` and the host is what comes after the `@`.
-Copy those values into the corresponding fields in Zeus and then click "Save node config".
-
-The parts map like this:
-
-* Username = LNbank Wallet ID
-* Password = LNbank Wallet Access Key (Admin)
-* Host = `YOUR_BTCPAY/plugins/lnbank/api/lndhub`
+* Click the "Scan LNDHub QR" button and scan the code
 
 ### Alby
 

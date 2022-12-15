@@ -32,5 +32,5 @@ git tag "${tagName}" -a -m "${tagDesc}"
 git push
 git push --tags
 
-printf "\n\n=====> Create release\n\n"
+printf "\n=====> Create release\n\n"
 gh release create "${tagName}" --notes "${notes}"
