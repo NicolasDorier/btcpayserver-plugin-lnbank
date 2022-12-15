@@ -9,9 +9,6 @@ fi
 # Configuration
 version=$1
 versionName="v${version}"
-remoteName="dennisreimann"
-remoteRepo="btcpayserver-plugin-lnbank"
-remoteBranch="master"
 tagName="BTCPayServer.LNbank/${versionName}"
 tagDesc="LNbank ${versionName}"
 csproj="./BTCPayServer.Plugins.LNbank.csproj"
@@ -24,16 +21,16 @@ if [ -z "${notes}" ]; then
 fi
 
 # We're good, let's roll …
-printf "\n\n=====> Update version\n\n"
+printf "\n=====> Update version\n"
 sed -i "s%<AssemblyVersion>.*</AssemblyVersion>%<AssemblyVersion>$version</AssemblyVersion>%g" $csproj
 sed -i "s%<PackageVersion>.*</PackageVersion>%<PackageVersion>$version</PackageVersion>%g" $csproj
 
-printf "\n\n=====> Commit and tag\n\n"
+printf "\n=====> Commit and tag\n\n"
 git add .
 git commit -a -m "${tagDesc}"
 git tag "${tagName}" -a -m "${tagDesc}"
-git push ${remoteName} ${remoteBranch}
-git push ${remoteName} "refs/tags/${tagName}"
+git push
+git push --tags
 
 printf "\n\n=====> Create release\n\n"
-gh release create "${tagName}" --notes "${notes}" -R "${remoteName}/${remoteRepo}"
+gh release create "${tagName}" --notes "${notes}"
