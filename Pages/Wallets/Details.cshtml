@@ -63,13 +63,15 @@
     <p>These credentials allow unrestricted access to your LNbank wallet. Treat it as confidential information.</p>
 
     <div id="LNbank-LNDhubQR" class="collapse">
-        <div class="qrcode">
+        <div class="qrcode" data-clipboard-confirm-element="LNbank-QRText" data-clipboard="@lndhubUrl" id="LNbank-QRContainer">
             @await Component.InvokeAsync("QRCode", new { data = lndhubUrl })
+        </div>
+        <div class="mt-2">
+            <small id="LNbank-QRText" class="qrtext">Scan the QR code, or tap to copy the address.</small>
         </div>
     </div>
 
     <div class="mt-4 d-grid d-sm-flex gap-3">
         <button class="btn btn-secondary" type="button" id="LNbank-ToggleLNDhubQR" data-bs-toggle="collapse" data-bs-target="#LNbank-LNDhubQR" aria-expanded="false" aria-controls="LNbank-LNDhubQR">Show QR code</button>
-        <button class="btn btn-secondary" type="button" id="LNbank-CopyLndhubUrl" data-clipboard="@lndhubUrl">Copy account URL</button>
     </div>
 }
