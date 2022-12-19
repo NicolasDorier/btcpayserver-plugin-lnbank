@@ -1,4 +1,5 @@
 @page "/plugins/lnbank/wallets/{walletId}/transactions/details/{transactionId}"
+@inject BTCPayServer.Abstractions.Services.Safe Safe
 @model BTCPayServer.Plugins.LNbank.Pages.Transactions.DetailsModel
 
 @{
@@ -62,7 +63,7 @@
                         id: 'transaction',
                         handlers: {
                             'transaction-update': data => {
-                                if (data.transactionId === "@Model.Transaction.TransactionId") {
+                                if (data.transactionId === @Safe.Json(Model.Transaction.TransactionId)) {
                                     window.location.reload();
                                 }
                             }
