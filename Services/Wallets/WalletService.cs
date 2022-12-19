@@ -275,14 +275,18 @@ public class WalletService
 
     public async Task<(BOLT11PaymentRequest? bolt11, LNURLPayRequest? lnurlPay)> GetPaymentRequests(string destination)
     {
+        var index = destination.IndexOf("lightning=", StringComparison.InvariantCultureIgnoreCase);
+        var dest = index == -1
+            ? destination.Replace("lightning:", "", StringComparison.InvariantCultureIgnoreCase)
+            : destination.Substring(index + 10);
         try
         {
-            var bolt11 = ParsePaymentRequest(destination);
+            var bolt11 = ParsePaymentRequest(dest);
             return (bolt11, null);
         }
         catch (Exception)
         {
-            var lnurlPay = await _lnurlService.GetPaymentRequest(destination);
+            var lnurlPay = await _lnurlService.GetPaymentRequest(dest);
             return (null, lnurlPay);
         }
     }
