@@ -296,6 +296,7 @@ public class WalletService
         
     public async Task<bool> Expire(Transaction transaction)
     {
+        var status = transaction.Status;
         var result = transaction.SetExpired();
         if (result)
         {
@@ -305,14 +306,15 @@ public class WalletService
         
         _logger.LogInformation(
             // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
-            result ? "Expired transaction {TransactionId}" : "Expiring transaction {TransactionId} failed",
-            transaction.TransactionId);
+            (result ? "Expired transaction {TransactionId}" : "Expiring transaction {TransactionId} failed") + " (previous state: {Status})",
+            transaction.TransactionId, status);
         
         return true;
     }
     
     public async Task<bool> Cancel(Transaction transaction)
     {
+        var status = transaction.Status;
         var result = transaction.SetCancelled();
         if (result)
         {
@@ -322,14 +324,15 @@ public class WalletService
         
         _logger.LogInformation(
             // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
-            result ? "Cancelled transaction {TransactionId}" : "Cancelling transaction {TransactionId} failed",
-            transaction.TransactionId);
+            (result ? "Cancelled transaction {TransactionId}" : "Cancelling transaction {TransactionId} failed") + " (previous state: {Status})",
+            transaction.TransactionId, status);
         
         return true;
     }
     
     public async Task<bool> Invalidate(Transaction transaction)
     {
+        var status = transaction.Status;
         var result = transaction.SetInvalid();
         if (result)
         {
@@ -339,14 +342,15 @@ public class WalletService
         
         _logger.LogInformation(
             // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
-            result ? "Invalidated transaction {TransactionId}" : "Invalidating transaction {TransactionId} failed",
-            transaction.TransactionId);
+            (result ? "Invalidated transaction {TransactionId}" : "Invalidating transaction {TransactionId} failed") + " (previous state: {Status})",
+            transaction.TransactionId, status);
         
         return result;
     }
 
     public async Task<bool> Settle(Transaction transaction, LightMoney amount, LightMoney amountSettled, LightMoney routingFee, DateTimeOffset date)
     {
+        var status = transaction.Status;
         var result = transaction.SetSettled(amount, amountSettled, routingFee, date);
         if (result)
         {
@@ -356,8 +360,8 @@ public class WalletService
         
         _logger.LogInformation(
             // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
-            result ? "Settled transaction {TransactionId}" : "Settling transaction {TransactionId} failed",
-            transaction.TransactionId);
+            (result ? "Settled transaction {TransactionId}" : "Settling transaction {TransactionId} failed") + " (previous state: {Status})",
+            transaction.TransactionId, status);
         
         return result;
     }

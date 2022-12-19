@@ -109,7 +109,7 @@ public class Transaction
 
     public bool SetCancelled()
     {
-        if (IsPaid || !string.IsNullOrEmpty(ExplicitStatus)) return false;
+        if (!CanTerminate) return false;
         AmountSettled = null;
         RoutingFee = null;
         PaidAt = null;
@@ -119,7 +119,7 @@ public class Transaction
     
     public bool SetInvalid()
     {
-        if (IsPaid || !string.IsNullOrEmpty(ExplicitStatus)) return false;
+        if (!CanTerminate) return false;
         AmountSettled = null;
         RoutingFee = null;
         PaidAt = null;
@@ -129,7 +129,7 @@ public class Transaction
     
     public bool SetExpired()
     {
-        if (IsPaid || !string.IsNullOrEmpty(ExplicitStatus)) return false;
+        if (!CanTerminate) return false;
         ExplicitStatus = StatusExpired;
         return true;
     }
@@ -146,6 +146,8 @@ public class Transaction
     }
 
     public bool HasRoutingFee => RoutingFee != null && RoutingFee > 0;
+
+    private bool CanTerminate => IsUnpaid || IsPending;
 
     internal static void OnModelCreating(ModelBuilder builder)
     {
@@ -164,10 +166,6 @@ public class Transaction
         builder
             .Entity<Transaction>()
             .HasIndex(o => o.PaymentHash);
-        
-        builder
-            .Entity<Transaction>()
-            .HasQueryFilter(t => t.ExplicitStatus != StatusCancelled && t.ExplicitStatus != StatusInvalid);
             
         builder
             .Entity<Transaction>()
