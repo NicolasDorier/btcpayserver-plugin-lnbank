@@ -11,11 +11,9 @@ namespace BTCPayServer.Plugins.LNbank.Pages;
 public abstract class BasePageModel : PageModel
 {
     protected readonly UserManager<ApplicationUser> UserManager;
-    protected readonly WalletService WalletService;
     protected readonly WalletRepository WalletRepository;
-    
-    protected string UserId => UserManager.GetUserId(User);
-        
+    protected readonly WalletService WalletService;
+
     protected BasePageModel(
         UserManager<ApplicationUser> userManager,
         WalletRepository walletRepository,
@@ -26,11 +24,14 @@ public abstract class BasePageModel : PageModel
         WalletRepository = walletRepository;
     }
 
+    protected string UserId => UserManager.GetUserId(User);
+
     protected async Task<Wallet> GetWallet(string userId, string walletId)
     {
-        return await WalletRepository.GetWallet(new WalletsQuery {
-            UserId = new []{ UserId },
-            WalletId = new []{ walletId },
+        return await WalletRepository.GetWallet(new WalletsQuery
+        {
+            UserId = new[] { UserId },
+            WalletId = new[] { walletId },
             IncludeTransactions = true
         });
     }

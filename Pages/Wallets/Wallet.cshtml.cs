@@ -21,13 +21,13 @@ public class WalletModel : BasePageModel
     public WalletModel(
         UserManager<ApplicationUser> userManager,
         WalletRepository walletRepository,
-        WalletService walletService) : base(userManager, walletRepository, walletService) {}
+        WalletService walletService) : base(userManager, walletRepository, walletService) { }
 
     public async Task<IActionResult> OnGetAsync(string walletId)
     {
         Wallet = await GetWallet(UserId, walletId);
         Transactions = Wallet.Transactions.OrderByDescending(t => t.CreatedAt);
-        
+
         return Page();
     }
 }

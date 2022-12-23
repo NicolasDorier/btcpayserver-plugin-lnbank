@@ -20,12 +20,13 @@ public class DeleteModel : BasePageModel
     public DeleteModel(
         UserManager<ApplicationUser> userManager,
         WalletRepository walletRepository,
-        WalletService walletService) : base(userManager, walletRepository, walletService) {}
+        WalletService walletService) : base(userManager, walletRepository, walletService) { }
 
     public async Task<IActionResult> OnGetAsync(string walletId)
     {
         Wallet = await GetWallet(UserId, walletId);
-        if (Wallet == null) return NotFound();
+        if (Wallet == null)
+            return NotFound();
 
         return Page();
     }
@@ -33,12 +34,13 @@ public class DeleteModel : BasePageModel
     public async Task<IActionResult> OnPostAsync(string walletId)
     {
         Wallet = await GetWallet(UserId, walletId);
-        if (Wallet == null) return NotFound();
+        if (Wallet == null)
+            return NotFound();
 
         try
         {
             await WalletRepository.RemoveWallet(Wallet);
-            
+
             TempData[WellKnownTempData.SuccessMessage] = "Wallet removed.";
             return RedirectToPage("./Index");
         }

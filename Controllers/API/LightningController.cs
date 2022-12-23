@@ -49,7 +49,8 @@ public class LightningController : ControllerBase
     [HttpPost("invoice")]
     public async Task<IActionResult> CreateLightningInvoice(CreateLightningInvoiceRequest req)
     {
-        if (Wallet == null) return this.CreateAPIError(404, "wallet-not-found", "The wallet was not found");
+        if (Wallet == null)
+            return this.CreateAPIError(404, "wallet-not-found", "The wallet was not found");
 
         try
         {
@@ -67,7 +68,8 @@ public class LightningController : ControllerBase
     [HttpPost("pay")]
     public async Task<IActionResult> Pay(LightningInvoicePayRequest req)
     {
-        if (Wallet == null) return this.CreateAPIError(404, "wallet-not-found", "The wallet was not found");
+        if (Wallet == null)
+            return this.CreateAPIError(404, "wallet-not-found", "The wallet was not found");
 
         var (bolt11, lnurlPay) = await _walletService.GetPaymentRequests(req.PaymentRequest);
         var amountRequired = bolt11 != null
@@ -84,7 +86,7 @@ public class LightningController : ControllerBase
         {
             // if not present, resolve BOLT11 from LNURLPay request
             bolt11 ??= await _walletService.GetBolt11(lnurlPay, amount, req.Comment);
-            
+
             // load wallet including transactions to do the balance check
             var wallet = await GetWalletWithTransactions(Wallet.WalletId);
             var description = req.Description ?? bolt11.ShortDescription;
@@ -104,8 +106,9 @@ public class LightningController : ControllerBase
     [HttpGet("balance")]
     public async Task<IActionResult> GetLightningNodeBalance()
     {
-        if (Wallet == null) return this.CreateAPIError(404, "wallet-not-found", "The wallet was not found");
-        
+        if (Wallet == null)
+            return this.CreateAPIError(404, "wallet-not-found", "The wallet was not found");
+
         try
         {
             // load wallet including transactions to see the balance
@@ -150,7 +153,7 @@ public class LightningController : ControllerBase
             };
             var offset = Convert.ToInt32(offsetIndex);
             var transactions = (await _walletRepository.GetTransactions(query)).Skip(offset);
-            
+
             var invoices = transactions.Select(ToLightningInvoiceData);
             return Ok(invoices);
         }
@@ -171,8 +174,9 @@ public class LightningController : ControllerBase
                 WalletId = WalletId,
                 InvoiceId = invoiceId
             });
-            if (transaction == null) return this.CreateAPIError(404, "invoice-not-found", "The invoice was not found");
-        
+            if (transaction == null)
+                return this.CreateAPIError(404, "invoice-not-found", "The invoice was not found");
+
             var invoice = ToLightningInvoiceData(transaction);
             return Ok(invoice);
         }
@@ -203,7 +207,7 @@ public class LightningController : ControllerBase
             };
             var offset = Convert.ToInt32(offsetIndex);
             var transactions = (await _walletRepository.GetTransactions(query)).Skip(offset);
-            
+
             var payments = transactions.Select(ToLightningPaymentData);
             return Ok(payments);
         }
@@ -212,15 +216,16 @@ public class LightningController : ControllerBase
             return this.CreateAPIError("generic-error", exception.Message);
         }
     }
-    
+
     [HttpGet("payment/{paymentHash}")]
     public async Task<IActionResult> GetLightningPayment(string paymentHash)
     {
         try
         {
             var payment = await _btcpayService.GetLightningPayment(paymentHash);
-            if (payment == null) return this.CreateAPIError(404, "payment-not-found", "The payment was not found");
-            
+            if (payment == null)
+                return this.CreateAPIError(404, "payment-not-found", "The payment was not found");
+
             return Ok(payment);
         }
         catch (Exception exception)
@@ -228,7 +233,7 @@ public class LightningController : ControllerBase
             return this.CreateAPIError("generic-error", exception.Message);
         }
     }
-    
+
     [HttpDelete("invoice/{invoiceId}")]
     public async Task<ActionResult<LightningInvoiceData>> CancelLightningInvoice(string invoiceId)
     {
@@ -264,7 +269,7 @@ public class LightningController : ControllerBase
         return Ok(address);
     }
 
-    private LightningInvoiceData ToLightningInvoiceData(Transaction transaction) => 
+    private LightningInvoiceData ToLightningInvoiceData(Transaction transaction) =>
         new()
         {
             Amount = transaction.Amount,
@@ -276,7 +281,7 @@ public class LightningController : ControllerBase
             ExpiresAt = transaction.ExpiresAt
         };
 
-    private LightningPaymentData ToLightningPaymentData(Transaction transaction) => 
+    private LightningPaymentData ToLightningPaymentData(Transaction transaction) =>
         new()
         {
             Id = transaction.InvoiceId,
@@ -293,7 +298,7 @@ public class LightningController : ControllerBase
     {
         return await _walletRepository.GetWallet(new WalletsQuery
         {
-            WalletId = new []{ walletId },
+            WalletId = new[] { walletId },
             IncludeTransactions = true
         });
     }

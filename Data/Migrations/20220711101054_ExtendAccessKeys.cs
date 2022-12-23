@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -14,7 +14,7 @@ namespace BTCPayServer.Plugins.LNbank.Data.Migrations
                 table: "AccessKeys",
                 type: "text",
                 nullable: true);
-            
+
             migrationBuilder.AddColumn<string>(
                 name: "Level",
                 schema: "BTCPayServer.Plugins.LNbank",
@@ -22,7 +22,7 @@ namespace BTCPayServer.Plugins.LNbank.Data.Migrations
                 type: "text",
                 nullable: false,
                 defaultValue: "Admin");
-            
+
             migrationBuilder.CreateIndex(
                 name: "IX_AccessKeys_UserId",
                 schema: "BTCPayServer.Plugins.LNbank",
@@ -36,12 +36,12 @@ namespace BTCPayServer.Plugins.LNbank.Data.Migrations
                 name: "IX_AccessKeys_UserId",
                 schema: "BTCPayServer.Plugins.LNbank",
                 table: "AccessKeys");
-            
+
             migrationBuilder.DropColumn(
                 name: "UserId",
                 schema: "BTCPayServer.Plugins.LNbank",
                 table: "AccessKeys");
-            
+
             migrationBuilder.DropColumn(
                 name: "Level",
                 schema: "BTCPayServer.Plugins.LNbank",

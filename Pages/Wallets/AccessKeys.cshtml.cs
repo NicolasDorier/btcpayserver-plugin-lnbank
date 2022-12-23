@@ -18,11 +18,11 @@ namespace BTCPayServer.Plugins.LNbank.Pages.Wallets;
 public class AccessKeysModel : BasePageModel
 {
     public Wallet Wallet { get; set; }
-    
+
     [BindProperty]
     public AccessKeyViewModel AccessKey { get; set; }
     public List<AccessKeyViewModel> AccessKeys { get; set; }
-    
+
     public class AccessKeyViewModel
     {
         [Required]
@@ -35,25 +35,28 @@ public class AccessKeysModel : BasePageModel
     public AccessKeysModel(
         UserManager<ApplicationUser> userManager,
         WalletRepository walletRepository,
-        WalletService walletService) : base(userManager, walletRepository, walletService) {}
+        WalletService walletService) : base(userManager, walletRepository, walletService) { }
 
     public async Task<IActionResult> OnGetAsync(string walletId)
     {
         Wallet = await GetWallet(UserId, walletId);
-        if (Wallet == null) return NotFound();
+        if (Wallet == null)
+            return NotFound();
 
         AccessKeys = await GetAccessKeyVMs(Wallet.AccessKeys);
-        
+
         return Page();
     }
 
     public async Task<IActionResult> OnPostAddAsync(string walletId)
     {
         Wallet = await GetWallet(UserId, walletId);
-        if (Wallet == null) return NotFound();
+        if (Wallet == null)
+            return NotFound();
 
         AccessKeys = await GetAccessKeyVMs(Wallet.AccessKeys);
-        if (!ModelState.IsValid) return Page();
+        if (!ModelState.IsValid)
+            return Page();
 
         var user = await UserManager.FindByEmailAsync(AccessKey.Email);
         if (user == null)
@@ -67,7 +70,7 @@ public class AccessKeysModel : BasePageModel
             ModelState.AddModelError(nameof(AccessKey.Level), "Invalid access level");
             return Page();
         }
-        
+
         await WalletRepository.AddOrUpdateAccessKey(Wallet.WalletId, user.Id, AccessKey.Level);
         TempData[WellKnownTempData.SuccessMessage] = "Access key added successfully.";
         return RedirectToPage("./AccessKeys", new { walletId });
@@ -76,12 +79,13 @@ public class AccessKeysModel : BasePageModel
     public async Task<IActionResult> OnPostRemoveAsync(string walletId, string key)
     {
         Wallet = await GetWallet(UserId, walletId);
-        if (Wallet == null) return NotFound();
+        if (Wallet == null)
+            return NotFound();
 
         try
         {
             await WalletRepository.DeleteAccessKey(Wallet.WalletId, key);
-            
+
             TempData[WellKnownTempData.SuccessMessage] = "Access key removed successfully.";
             return RedirectToPage("./AccessKeys", new { walletId });
         }

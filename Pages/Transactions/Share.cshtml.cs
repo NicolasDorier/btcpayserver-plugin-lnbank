@@ -15,8 +15,8 @@ public class ShareModel : BasePageModel
 
     public ShareModel(
         UserManager<ApplicationUser> userManager,
-        WalletRepository walletRepository, 
-        WalletService walletService) : base(userManager, walletRepository, walletService) {}
+        WalletRepository walletRepository,
+        WalletService walletService) : base(userManager, walletRepository, walletService) { }
 
     public async Task<IActionResult> OnGetAsync(string transactionId)
     {
@@ -25,7 +25,8 @@ public class ShareModel : BasePageModel
             TransactionId = transactionId
         });
 
-        if (Transaction == null || Transaction.IsExpired) return NotFound();
+        if (Transaction == null || Transaction.IsExpired)
+            return NotFound();
 
         return Page();
     }

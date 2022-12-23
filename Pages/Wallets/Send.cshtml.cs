@@ -25,24 +25,24 @@ public class SendModel : BasePageModel
     public Wallet Wallet { get; set; }
     public BOLT11PaymentRequest Bolt11 { get; set; }
     public LNURLPayRequest LnurlPay { get; set; }
-    
+
     [BindProperty]
     [DisplayName("Payment Request, LNURL or Lightning Address")]
     [Required]
     public string Destination { get; set; }
-    
+
     [BindProperty]
     [DisplayName("BOLT11 Payment Request")]
     public string PaymentRequest { get; set; } // this is set from the parsed Destination
-    
+
     [BindProperty]
     [DisplayName("Amount")]
     [Range(1, 2100000000000)]
     public long? ExplicitAmount { get; set; }
-    
+
     [BindProperty]
     public string Description { get; set; }
-    
+
     [BindProperty]
     public string Comment { get; set; }
 
@@ -58,7 +58,8 @@ public class SendModel : BasePageModel
     public async Task<IActionResult> OnGet(string walletId)
     {
         Wallet = await GetWallet(UserId, walletId);
-        if (Wallet == null) return NotFound();
+        if (Wallet == null)
+            return NotFound();
 
         return Page();
     }
@@ -66,8 +67,10 @@ public class SendModel : BasePageModel
     public async Task<IActionResult> OnPostDecodeAsync(string walletId)
     {
         Wallet = await GetWallet(UserId, walletId);
-        if (Wallet == null) return NotFound();
-        if (!ModelState.IsValid) return Page();
+        if (Wallet == null)
+            return NotFound();
+        if (!ModelState.IsValid)
+            return Page();
 
         try
         {
@@ -78,7 +81,7 @@ public class SendModel : BasePageModel
             {
                 Description = Bolt11.ShortDescription;
                 PaymentRequest = Bolt11.ToString();
-                
+
                 if (Bolt11.MinimumAmount == LightMoney.Zero)
                 {
                     ExplicitAmount = 1;
@@ -90,12 +93,12 @@ public class SendModel : BasePageModel
 
                 var isDefinedAmount = LnurlPay.MinSendable == LnurlPay.MaxSendable;
                 var isCommentAllowed = LnurlPay.CommentAllowed is > 0;
-                
+
                 if (!isDefinedAmount)
                 {
                     ExplicitAmount = (long)LnurlPay.MinSendable.ToUnit(LightMoneyUnit.Satoshi);
                 }
-                
+
                 // no further interaction required, get the BOLT11
                 if (isDefinedAmount && !isCommentAllowed)
                 {
@@ -103,7 +106,7 @@ public class SendModel : BasePageModel
                     PaymentRequest = Bolt11.ToString();
                 }
             }
-            
+
             // Payment request is not present in LNURL case with further interaction required
             if (PaymentRequest != null)
             {
@@ -121,8 +124,10 @@ public class SendModel : BasePageModel
     public async Task<IActionResult> OnPostConfirmAsync(string walletId)
     {
         Wallet = await GetWallet(UserId, walletId);
-        if (Wallet == null) return NotFound();
-        if (!ModelState.IsValid) return Page();
+        if (Wallet == null)
+            return NotFound();
+        if (!ModelState.IsValid)
+            return Page();
 
         if (string.IsNullOrEmpty(PaymentRequest))
         {
@@ -137,7 +142,7 @@ public class SendModel : BasePageModel
                     var isDefinedAmount = LnurlPay.MinSendable == LnurlPay.MaxSendable;
                     var explicitAmount = ExplicitAmount.HasValue ? LightMoney.Satoshis(ExplicitAmount.Value) : null;
                     var amount = isDefinedAmount ? LnurlPay.MinSendable : explicitAmount;
-                
+
                     if (amount == null)
                     {
                         ModelState.AddModelError(nameof(ExplicitAmount), "Amount must be defined");
@@ -155,13 +160,14 @@ public class SendModel : BasePageModel
                 TempData[WellKnownTempData.ErrorMessage] = exception.Message;
             }
         }
-        
+
         // Abort if there's still no payment request - from here on we require a BOLT11
         if (string.IsNullOrEmpty(PaymentRequest))
         {
             ModelState.AddModelError(nameof(PaymentRequest), "A valid BOLT11 Payment Request is required");
         }
-        if (!ModelState.IsValid) return Page();
+        if (!ModelState.IsValid)
+            return Page();
 
         Bolt11 ??= WalletService.ParsePaymentRequest(PaymentRequest!);
 

@@ -16,12 +16,11 @@ public class LNURLService
     // see LightningClientFactoryService
     private const string HttpHandlerOnionNamedClient = "lightning.onion";
     private const string HttpHandlerClearnetNamedClient = "lightning.clearnet";
+    private const string LnurlPayRequestTag = "payRequest";
 
-    private const string LNURLPayRequestTag = "payRequest";
-    
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly Network _network;
     private readonly bool _isDevEnv;
+    private readonly Network _network;
 
     public LNURLService(
         IHttpClientFactory httpClientFactory,
@@ -30,7 +29,7 @@ public class LNURLService
     {
         _httpClientFactory = httpClientFactory;
         _network = networkProvider.GetNetwork<BTCPayNetwork>(BTCPayService.CryptoCode).NBitcoinNetwork;
-        
+
         // This is to allow for local testing of LNURL payments
         _isDevEnv = networkProvider.NetworkType == ChainName.Regtest && env.IsDevelopment();
     }
@@ -41,49 +40,52 @@ public class LNURLService
         return await ResolveLNURL(lnurl, lnurlTag, destination);
     }
 
-    public async Task<BOLT11PaymentRequest> GetBolt11(LNURLPayRequest payRequest, LightMoney? amount = null, string? comment = null)
+    public async Task<BOLT11PaymentRequest> GetBolt11(LNURLPayRequest payRequest, LightMoney? amount = null,
+        string? comment = null)
     {
-        if (payRequest.Tag != LNURLPayRequestTag)
-        {
+        if (payRequest.Tag != LnurlPayRequestTag)
             throw new PaymentRequestValidationException(
-                $"Expected LNURL \"{LNURLPayRequestTag}\" type, got \"{payRequest.Tag}\".");
-        }
+                $"Expected LNURL \"{LnurlPayRequestTag}\" type, got \"{payRequest.Tag}\".");
 
-        var httpClient = CreateClient(payRequest.Callback);
-        var payResponse = await payRequest.SendRequest(amount ?? payRequest.MinSendable, _network, httpClient, comment);
-        var bolt11 = payResponse.GetPaymentRequest(_network);
+        HttpClient httpClient = CreateClient(payRequest.Callback);
+        LNURLPayRequest.LNURLPayRequestCallbackResponse? payResponse =
+            await payRequest.SendRequest(amount ?? payRequest.MinSendable, _network, httpClient, comment);
+        BOLT11PaymentRequest? bolt11 = payResponse.GetPaymentRequest(_network);
 
         return bolt11;
     }
 
     private async Task<LNURLPayRequest> ResolveLNURL(Uri lnurl, string? lnurlTag, string destination)
     {
-        var type = IsLightningAddress(destination) ? "Lightning Address" : "LNURL";
+        string type = IsLightningAddress(destination) ? "Lightning Address" : "LNURL";
         try
         {
             if (lnurlTag is null)
             {
-                var httpClient = CreateClient(lnurl);
-                var info = (LNURLPayRequest)await LNURL.LNURL.FetchInformation(lnurl, httpClient);
+                HttpClient httpClient = CreateClient(lnurl);
+                LNURLPayRequest? info = (LNURLPayRequest)await LNURL.LNURL.FetchInformation(lnurl, httpClient);
                 lnurlTag = info.Tag;
             }
 
-            if (lnurlTag.Equals("payRequest", StringComparison.InvariantCultureIgnoreCase))
+            if (lnurlTag.Equals(LnurlPayRequestTag, StringComparison.InvariantCultureIgnoreCase))
             {
-                var httpClient = CreateClient(lnurl);
-                var payRequest = (LNURLPayRequest)await LNURL.LNURL.FetchInformation(lnurl, lnurlTag, httpClient);
+                HttpClient httpClient = CreateClient(lnurl);
+                LNURLPayRequest? payRequest =
+                    (LNURLPayRequest)await LNURL.LNURL.FetchInformation(lnurl, lnurlTag, httpClient);
                 return payRequest;
             }
         }
-        catch (HttpRequestException ex) when (_isDevEnv && ex.Message.StartsWith("The SSL connection could not be established"))
+        catch (HttpRequestException ex) when (_isDevEnv &&
+                                              ex.Message.StartsWith("The SSL connection could not be established"))
         {
-            var lnurlBuilder = new UriBuilder(lnurl) { Scheme = Uri.UriSchemeHttp };
+            UriBuilder lnurlBuilder = new UriBuilder(lnurl) { Scheme = Uri.UriSchemeHttp };
             return await ResolveLNURL(lnurlBuilder.Uri, lnurlTag, destination);
         }
         catch (Exception ex)
         {
             throw new ResolveLNURLException(destination, $"Resolving {type} {destination} failed: {ex.Message}");
         }
+
         throw new ResolveLNURLException(destination, $"Resolving {type} {destination} failed");
     }
 
@@ -91,7 +93,7 @@ public class LNURLService
     {
         Uri lnurl;
         string? lnurlTag = null;
-        var isLnAddress = IsLightningAddress(destination);
+        bool isLnAddress = IsLightningAddress(destination);
         try
         {
             lnurl = isLnAddress
@@ -100,7 +102,7 @@ public class LNURLService
         }
         catch (Exception ex)
         {
-            var type = isLnAddress ? "Lightning Address" : "LNURL";
+            string type = isLnAddress ? "Lightning Address" : "LNURL";
             throw new ResolveLNURLException(destination, $"Parsing {type} failed: {ex.Message}");
         }
 
@@ -109,12 +111,15 @@ public class LNURLService
 
     private bool IsLightningAddress(string email)
     {
-        if (string.IsNullOrEmpty(email)) return false;
-        if (_isDevEnv) return email.Contains('@');
-        
-        var options = ParserOptions.Default.Clone();
+        if (string.IsNullOrEmpty(email))
+            return false;
+        if (_isDevEnv)
+            return email.Contains('@');
+
+        ParserOptions? options = ParserOptions.Default.Clone();
         options.AllowAddressesWithoutDomain = false;
-        return MailboxAddress.TryParse(options, email, out var mailboxAddress) && mailboxAddress is not null;
+        return MailboxAddress.TryParse(options, email, out MailboxAddress? mailboxAddress) &&
+               mailboxAddress is not null;
     }
 
     private HttpClient CreateClient(Uri uri)

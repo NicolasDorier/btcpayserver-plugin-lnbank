@@ -15,13 +15,13 @@ public class LNbankSwaggerProvider : ISwaggerProvider
     {
         _fileProvider = webHostEnvironment.WebRootFileProvider;
     }
-    
+
     public async Task<JObject> Fetch()
     {
         JObject json = new();
-        var fi = _fileProvider.GetFileInfo("Resources/swagger/v1/swagger.template.lnbank.json");
-        await using var stream = fi.CreateReadStream();
-        using var reader = new StreamReader(fi.CreateReadStream());
+        IFileInfo fi = _fileProvider.GetFileInfo("Resources/swagger/v1/swagger.template.lnbank.json");
+        await using Stream stream = fi.CreateReadStream();
+        using StreamReader reader = new StreamReader(fi.CreateReadStream());
         json.Merge(JObject.Parse(await reader.ReadToEndAsync()));
         return json;
     }

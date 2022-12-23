@@ -31,11 +31,11 @@ public class LnurlController : ControllerBase
         _walletService = walletService;
         _walletRepository = walletRepository;
     }
-    
+
     [HttpGet("{walletId}/pay")]
     public async Task<IActionResult> LnurlPay(string walletId)
     {
-        var wallet = await _walletRepository.GetWallet(new WalletsQuery { WalletId = new []{ walletId } });
+        var wallet = await _walletRepository.GetWallet(new WalletsQuery { WalletId = new[] { walletId } });
         if (wallet == null)
         {
             return this.CreateAPIError(404, "wallet-not-found", "The wallet was not found");
@@ -63,7 +63,7 @@ public class LnurlController : ControllerBase
         if (amount is null)
         {
             var payRequest = GetPayRequest(wallet.WalletId, meta);
-            
+
             return Ok(payRequest);
         }
 
@@ -84,7 +84,7 @@ public class LnurlController : ControllerBase
                 Expiry = WalletService.ExpiryDefault
             };
             Transaction transaction = await _walletService.Receive(wallet, req, comment);
-            
+
             var paymentRequest = transaction.PaymentRequest;
             if (_walletService.ValidateDescriptionHash(paymentRequest, meta))
             {
@@ -105,11 +105,11 @@ public class LnurlController : ControllerBase
 
     private LNUrlStatusResponse GetError(string reason) => new()
     {
-        Status = "ERROR", 
+        Status = "ERROR",
         Reason = reason
     };
 
-    private LNURLPayRequest GetPayRequest(string walletId, string metadata) => new() 
+    private LNURLPayRequest GetPayRequest(string walletId, string metadata) => new()
     {
         Tag = "payRequest",
         Callback = new Uri($"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.PathBase.ToUriComponent()}/api/v1/lnbank/lnurl/{walletId}/pay-callback"),

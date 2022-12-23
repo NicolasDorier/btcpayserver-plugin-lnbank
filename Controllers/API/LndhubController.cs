@@ -52,32 +52,32 @@ public class LndhubController : ControllerBase
     public async Task<IActionResult> Auth(AuthRequest req, [FromQuery] string type)
     {
         AuthResponse result = null;
-        
-        switch (type) 
+
+        switch (type)
         {
             case "auth":
                 var wallet = await _walletRepository.GetWallet(new WalletsQuery
                 {
-                    WalletId = new [] { req.Login },
-                    AccessKey = new []{ req.Password }
+                    WalletId = new[] { req.Login },
+                    AccessKey = new[] { req.Password }
                 });
-        
+
                 if (wallet is { AccessLevel: AccessLevel.Admin })
                 {
                     var accessKey = wallet.AccessKeys.First(a => a.Key == req.Password);
                     result = new AuthResponse { AccessToken = accessKey.Key, RefreshToken = accessKey.Key };
                 }
                 break;
-            
+
             // fake this case as we don't do OAuth
             case "refresh_token":
                 result = new AuthResponse { AccessToken = req.RefreshToken, RefreshToken = req.RefreshToken };
                 break;
         }
-        
+
         return Ok(result != null ? result : new ErrorResponse(1));
     }
-    
+
     // https://github.com/BlueWallet/LndHub/blob/master/doc/Send-requirements.md#get-getinfo
     [HttpGet("getinfo")]
     public async Task<IActionResult> GetInfo()
@@ -101,7 +101,7 @@ public class LndhubController : ControllerBase
         };
         return Ok(result);
     }
-    
+
     // https://github.com/BlueWallet/LndHub/blob/master/doc/Send-requirements.md#get-gettxs
     [HttpGet("gettxs")]
     public async Task<IActionResult> GetTransactions([FromQuery] int? limit, [FromQuery] int? offset)
@@ -123,7 +123,7 @@ public class LndhubController : ControllerBase
             .Select(ToInvoiceData);
         return Ok(invoices);
     }
-    
+
     // https://github.com/BlueWallet/LndHub/blob/master/doc/Send-requirements.md#get-getbalance
     [HttpGet("balance")]
     public async Task<IActionResult> Balance()
@@ -131,10 +131,10 @@ public class LndhubController : ControllerBase
         var wallet = await GetWalletWithTransactions();
         var btc = new BtcBalance { AvailableBalance = wallet.Balance };
         var result = new BalanceData { BTC = btc };
-        
+
         return Ok(result);
     }
-    
+
     // https://github.com/BlueWallet/LndHub/blob/master/doc/Send-requirements.md#get-getpending
     [HttpGet("getpending")]
     public IActionResult GetPendingTransactions()
@@ -142,7 +142,7 @@ public class LndhubController : ControllerBase
         // There are no pending BTC transactions, so leave it as an empty implementation
         return Ok(new List<TransactionData>());
     }
-    
+
     // https://github.com/BlueWallet/LndHub/blob/master/doc/Send-requirements.md#get-decodeinvoice
     [HttpGet("decodeinvoice")]
     public IActionResult DecodeInvoice([FromQuery] string invoice)
@@ -168,7 +168,7 @@ public class LndhubController : ControllerBase
             return Ok(new ErrorResponse(4, ex.Message));
         }
     }
-    
+
     // https://github.com/getAlby/lightning-browser-extension/blob/f0b0ab9ad0b2dd6e60b864548fa39091ef81bbdc/src/extension/background-script/connectors/lndhub.ts#L249
     [HttpGet("checkpayment/{paymentHash}")]
     public async Task<IActionResult> CheckPayment(string paymentHash)
@@ -184,7 +184,7 @@ public class LndhubController : ControllerBase
             return NotFound(result);
         }
     }
-    
+
     // https://github.com/BlueWallet/LndHub/blob/master/doc/Send-requirements.md#post-addinvoice
     [HttpPost("addinvoice")]
     public async Task<IActionResult> AddInvoice(CreateInvoiceRequest request)
@@ -201,7 +201,7 @@ public class LndhubController : ControllerBase
             };
             var transaction = await _walletService.Receive(Wallet, req, request.Memo);
             var invoice = ToInvoiceData(transaction);
-        
+
             return Ok(invoice);
         }
         catch (Exception ex)
@@ -209,7 +209,7 @@ public class LndhubController : ControllerBase
             return Ok(new ErrorResponse(4, ex.Message));
         }
     }
-    
+
     // https://github.com/BlueWallet/LndHub/blob/master/doc/Send-requirements.md#post-payinvoice
     [HttpPost("payinvoice")]
     public async Task<IActionResult> PayInvoice(PayInvoiceRequest request)
@@ -219,7 +219,7 @@ public class LndhubController : ControllerBase
         {
             var transaction = await _walletService.Send(wallet, request.PaymentRequest);
             var result = ToPaymentResponse(transaction);
-        
+
             return Ok(result);
         }
         catch (InsufficientBalanceException ex)
@@ -231,13 +231,13 @@ public class LndhubController : ControllerBase
             return Ok(new ErrorResponse(4, ex.Message));
         }
     }
-    
+
     private async Task<Wallet> GetWalletWithTransactions()
     {
         return await _walletRepository.GetWallet(new WalletsQuery
         {
-            UserId = new []{ UserId },
-            WalletId = new []{ WalletId },
+            UserId = new[] { UserId },
+            WalletId = new[] { WalletId },
             IncludeTransactions = true
         });
     }
@@ -245,7 +245,7 @@ public class LndhubController : ControllerBase
     private TransactionData ToTransactionData(Transaction t)
     {
         var bolt11 = _walletService.ParsePaymentRequest(t.PaymentRequest);
-        
+
         return new TransactionData
         {
             PaymentPreimage = bolt11.PaymentSecret?.ToString(),
@@ -267,7 +267,7 @@ public class LndhubController : ControllerBase
             Transaction.StatusCancelled => "Invoice cancelled",
             _ => "" // needs to be an empty string for compatibility across wallets
         };
-        
+
         return new PaymentResponse
         {
             PaymentError = error,
@@ -282,13 +282,13 @@ public class LndhubController : ControllerBase
             }
         };
     }
-    
+
     private PaymentData ToPaymentData(Transaction t)
     {
         var bolt11 = _walletService.ParsePaymentRequest(t.PaymentRequest);
         var expireTime = TimeSpan.FromSeconds((t.ExpiresAt - t.CreatedAt).TotalSeconds);
         var amount = t.AmountSettled.Abs();
-        
+
         return new PaymentData
         {
             PaymentPreimage = bolt11.PaymentSecret,
@@ -301,12 +301,12 @@ public class LndhubController : ControllerBase
             Timestamp = t.CreatedAt
         };
     }
-    
+
     private InvoiceData ToInvoiceData(Transaction t)
     {
         var bolt11 = _walletService.ParsePaymentRequest(t.PaymentRequest);
         var expireTime = TimeSpan.FromSeconds((t.ExpiresAt - t.CreatedAt).TotalSeconds);
-        
+
         return new InvoiceData
         {
             Id = bolt11.Hash,

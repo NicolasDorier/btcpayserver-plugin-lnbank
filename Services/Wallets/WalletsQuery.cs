@@ -7,5 +7,4 @@ public class WalletsQuery
     public string[] AccessKey { get; set; }
     public bool IncludeTransactions { get; set; }
     public bool IncludeAccessKeys { get; set; }
-        
 }

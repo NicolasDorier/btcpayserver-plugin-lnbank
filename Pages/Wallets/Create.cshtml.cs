@@ -20,7 +20,7 @@ public class CreateModel : BasePageModel
     public CreateModel(
         UserManager<ApplicationUser> userManager,
         WalletRepository walletRepository,
-        WalletService walletService) : base(userManager, walletRepository, walletService) {}
+        WalletService walletService) : base(userManager, walletRepository, walletService) { }
 
     public IActionResult OnGet()
     {
@@ -29,22 +29,24 @@ public class CreateModel : BasePageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-        if (!ModelState.IsValid) return Page();
+        if (!ModelState.IsValid)
+            return Page();
 
         Wallet = new Wallet
         {
             UserId = UserId
         };
 
-        if (!await TryUpdateModelAsync(Wallet, "wallet", w => w.Name)) return Page();
-            
+        if (!await TryUpdateModelAsync(Wallet, "wallet", w => w.Name))
+            return Page();
+
         await WalletRepository.AddOrUpdateWallet(Wallet);
-        
+
         if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
         {
             return Redirect(ReturnUrl + $"?LNbankWallet={Wallet.WalletId}");
         }
-        
+
         TempData[WellKnownTempData.SuccessMessage] = "Wallet successfully created.";
         return RedirectToPage("./Wallet", new { walletId = Wallet.WalletId });
     }

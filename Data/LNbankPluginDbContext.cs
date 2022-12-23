@@ -15,7 +15,7 @@ public class LNbankPluginDbContext : DbContext
     {
         _designTime = designTime;
     }
-        
+
     public DbSet<Wallet> Wallets { get; set; }
     public DbSet<AccessKey> AccessKeys { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
@@ -47,7 +47,7 @@ public class LNbankPluginDbContext : DbContext
                 }
             }
         }
-        
+
         AccessKey.OnModelCreating(modelBuilder);
         Transaction.OnModelCreating(modelBuilder);
         Wallet.OnModelCreating(modelBuilder);

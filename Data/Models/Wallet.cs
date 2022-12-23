@@ -17,13 +17,13 @@ public class Wallet
 
     [DisplayName("User ID")]
     public string UserId { get; set; }
-    
+
     [Required]
     public string Name { get; set; }
-    
+
     [DisplayName("Creation date")]
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
-    
+
     public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 
     public LightMoney Balance
@@ -34,7 +34,7 @@ public class Wallet
     }
 
     public ICollection<AccessKey> AccessKeys { get; set; } = new List<AccessKey>();
-    
+
     [NotMapped]
     public AccessLevel AccessLevel { get; set; }
 
@@ -45,7 +45,7 @@ public class Wallet
         builder
             .Entity<Wallet>()
             .HasIndex(o => o.UserId);
-            
+
         builder
             .Entity<Wallet>()
             .HasQueryFilter(w => !w.IsSoftDeleted);

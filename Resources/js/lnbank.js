@@ -3,8 +3,8 @@
 const isDev = document.documentElement.hasAttribute("data-devenv");
 
 document.addEventListener("DOMContentLoaded", () => {
-    const { hubs } = window.LNbank
-    
+    const {hubs} = window.LNbank
+
     // SignalR
     hubs.forEach(hub => {
         const connection = new signalR.HubConnectionBuilder()

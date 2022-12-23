@@ -20,20 +20,20 @@ public class Transaction
     public LightMoney AmountSettled { get; set; }
     public LightMoney RoutingFee { get; set; }
     public string Description { get; set; }
-    
+
     [DisplayName("Payment Request")]
     [Required]
     public string PaymentRequest { get; set; }
-    
+
     [DisplayName("Payment Hash")]
     public string PaymentHash { get; set; }
-    
+
     [DisplayName("Creation date")]
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
-    
+
     [DisplayName("Expiry")]
     public DateTimeOffset ExpiresAt { get; set; }
-    
+
     [DisplayName("Payment date")]
     public DateTimeOffset? PaidAt { get; set; }
     public Wallet Wallet { get; set; }
@@ -46,7 +46,7 @@ public class Transaction
     public const string StatusPending = "pending";
     public const string StatusCancelled = "cancelled";
     public const string StatusInvalid = "invalid";
-    
+
     public string Status
     {
         get
@@ -101,42 +101,46 @@ public class Transaction
     public bool IsPaid => Status == StatusPaid || IsSettled;
     public bool IsUnpaid => !IsPaid;
     public bool IsExpired => Status == StatusExpired;
-    public bool IsPending  => Status == StatusPending;
-    public bool IsCancelled  => Status == StatusCancelled;
-    public bool IsInvalid  => Status == StatusInvalid;
+    public bool IsPending => Status == StatusPending;
+    public bool IsCancelled => Status == StatusCancelled;
+    public bool IsInvalid => Status == StatusInvalid;
 
     public DateTimeOffset Date => PaidAt ?? CreatedAt;
 
     public bool SetCancelled()
     {
-        if (!CanTerminate) return false;
+        if (!CanTerminate)
+            return false;
         AmountSettled = null;
         RoutingFee = null;
         PaidAt = null;
         ExplicitStatus = StatusCancelled;
         return true;
     }
-    
+
     public bool SetInvalid()
     {
-        if (!CanTerminate) return false;
+        if (!CanTerminate)
+            return false;
         AmountSettled = null;
         RoutingFee = null;
         PaidAt = null;
         ExplicitStatus = StatusInvalid;
         return true;
     }
-    
+
     public bool SetExpired()
     {
-        if (!CanTerminate) return false;
+        if (!CanTerminate)
+            return false;
         ExplicitStatus = StatusExpired;
         return true;
     }
-    
+
     public bool SetSettled(LightMoney amount, LightMoney amountSettled, LightMoney routingFee, DateTimeOffset date)
     {
-        if (IsSettled) return false;
+        if (IsSettled)
+            return false;
         Amount = amount;
         AmountSettled = amountSettled;
         RoutingFee = routingFee;
@@ -154,25 +158,25 @@ public class Transaction
         builder
             .Entity<Transaction>()
             .HasIndex(o => o.InvoiceId);
-        
+
         builder
             .Entity<Transaction>()
             .HasIndex(o => o.WalletId);
-        
+
         builder
             .Entity<Transaction>()
             .HasIndex(o => o.PaymentRequest);
-        
+
         builder
             .Entity<Transaction>()
             .HasIndex(o => o.PaymentHash);
-            
+
         builder
             .Entity<Transaction>()
             .HasOne(o => o.Wallet)
             .WithMany(w => w.Transactions)
             .OnDelete(DeleteBehavior.Cascade);
-            
+
         builder
             .Entity<Transaction>()
             .Property(e => e.Amount)

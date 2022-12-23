@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BTCPayServer.Data;
 using BTCPayServer.Abstractions.Constants;
 using BTCPayServer.Client;
+using BTCPayServer.Data;
 using BTCPayServer.Lightning;
 using BTCPayServer.Plugins.LNbank.Data.Models;
 using BTCPayServer.Plugins.LNbank.Services.Wallets;
@@ -22,7 +22,7 @@ public class IndexModel : BasePageModel
     public IndexModel(
         UserManager<ApplicationUser> userManager,
         WalletRepository walletRepository,
-        WalletService walletService) : base(userManager, walletRepository, walletService) {}
+        WalletService walletService) : base(userManager, walletRepository, walletService) { }
 
     public async Task<IActionResult> OnGetAsync(string walletId)
     {
@@ -41,7 +41,7 @@ public class IndexModel : BasePageModel
         TotalBalance = Wallets
             .Select(w => w.Balance)
             .Aggregate((res, current) => res + current);
-        
+
         return Page();
     }
 }

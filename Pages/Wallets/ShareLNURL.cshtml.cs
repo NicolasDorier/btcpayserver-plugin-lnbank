@@ -12,19 +12,21 @@ namespace BTCPayServer.Plugins.LNbank.Pages.Wallets;
 public class ShareLNURLModel : BasePageModel
 {
     public Wallet Wallet { get; set; }
-    
+
     public ShareLNURLModel(
         UserManager<ApplicationUser> userManager,
         WalletRepository walletRepository,
-        WalletService walletService) : base(userManager, walletRepository, walletService) {}
-        
+        WalletService walletService) : base(userManager, walletRepository, walletService) { }
+
     public async Task<IActionResult> OnGet(string walletId)
     {
-        Wallet = await WalletRepository.GetWallet(new WalletsQuery {
+        Wallet = await WalletRepository.GetWallet(new WalletsQuery
+        {
             WalletId = new[] { walletId }
         });
 
-        if (Wallet == null) return NotFound();
+        if (Wallet == null)
+            return NotFound();
 
         return Page();
     }

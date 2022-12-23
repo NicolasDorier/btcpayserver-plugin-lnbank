@@ -17,7 +17,7 @@ public class AuthorizationRequirementHandler : IPluginHookFilter
 
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly WalletRepository _walletRepository;
-        
+
     public AuthorizationRequirementHandler(
         UserManager<ApplicationUser> userManager,
         WalletRepository walletRepository)
@@ -25,20 +25,21 @@ public class AuthorizationRequirementHandler : IPluginHookFilter
         _userManager = userManager;
         _walletRepository = walletRepository;
     }
-    
+
     public async Task<object> Execute(object args)
     {
         var obj = (AuthorizationFilterHandle)args;
         var httpContext = obj.HttpContext;
         var userId = _userManager.GetUserId(obj.Context.User);
         Wallet wallet = null;
-        
+
         var routeData = httpContext.GetRouteData();
         if (routeData.Values.TryGetValue("walletId", out var vWalletId) && vWalletId is string walletId)
         {
-            wallet = await _walletRepository.GetWallet(new WalletsQuery {
-                UserId = new []{ userId },
-                WalletId = new []{ walletId }
+            wallet = await _walletRepository.GetWallet(new WalletsQuery
+            {
+                UserId = new[] { userId },
+                WalletId = new[] { walletId }
             });
         }
 
@@ -66,7 +67,7 @@ public class AuthorizationRequirementHandler : IPluginHookFilter
         {
             httpContext.Items["BTCPAY.LNBANK.WALLET"] = wallet;
         }
-        
+
         return obj;
     }
 }

@@ -22,26 +22,26 @@ namespace BTCPayServer.Plugins.LNbank.Pages.Wallets;
 public class ReceiveModel : BasePageModel
 {
     private readonly ILogger _logger;
-    
+
     public Wallet Wallet { get; set; }
-    
+
     [BindProperty]
     public string Description { get; set; }
-    
-    [BindProperty] 
+
+    [BindProperty]
     [DisplayName("Attach description to payment request")]
     public bool AttachDescription { get; set; }
-    
+
     [BindProperty]
     [DisplayName("Amount")]
     [Required]
     [Range(0, 2100000000000)]
     public long Amount { get; set; }
-    
+
     [BindProperty]
     [DisplayName("Add routing hints for private channels")]
     public bool PrivateRouteHints { get; set; }
-    
+
     [BindProperty]
     [DisplayName("Custom invoice expiry")]
     public int? Expiry { get; set; }
@@ -54,11 +54,12 @@ public class ReceiveModel : BasePageModel
     {
         _logger = logger;
     }
-        
+
     public async Task<IActionResult> OnGet(string walletId)
     {
         Wallet = await GetWallet(UserId, walletId);
-        if (Wallet == null) return NotFound();
+        if (Wallet == null)
+            return NotFound();
 
         return Page();
     }
@@ -66,8 +67,10 @@ public class ReceiveModel : BasePageModel
     public async Task<IActionResult> OnPostAsync(string walletId)
     {
         Wallet = await GetWallet(UserId, walletId);
-        if (Wallet == null) return NotFound();
-        if (!ModelState.IsValid) return Page();
+        if (Wallet == null)
+            return NotFound();
+        if (!ModelState.IsValid)
+            return Page();
 
         try
         {
@@ -80,7 +83,7 @@ public class ReceiveModel : BasePageModel
                 Description = Description,
                 PrivateRouteHints = PrivateRouteHints
             };
-            
+
             var memo = AttachDescription && !req.DescriptionHashOnly && !string.IsNullOrEmpty(req.Description) ? req.Description : null;
             var transaction = await WalletService.Receive(Wallet, req, memo);
             return RedirectToPage("/Transactions/Details", new { walletId, transaction.TransactionId });

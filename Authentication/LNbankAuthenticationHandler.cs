@@ -42,7 +42,7 @@ public class LNbankAuthenticationHandler : AuthenticationHandler<LNbankAuthentic
         var apiKey = authHeader.Substring("Bearer ".Length);
         var wallet = await _walletRepository.GetWallet(new WalletsQuery
         {
-            AccessKey = new []{ apiKey },
+            AccessKey = new[] { apiKey },
             IncludeTransactions = false
         });
         if (wallet is null)

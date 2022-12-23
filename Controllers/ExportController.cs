@@ -26,12 +26,12 @@ public class ExportController : Controller
     {
         _walletRepository = walletRepository;
     }
-    
+
     [HttpGet("{walletId}/{format}")]
     [Authorize(AuthenticationSchemes = AuthenticationSchemes.Cookie, Policy = Policies.CanViewInvoices)]
     public async Task<IActionResult> Export(string walletId, string format)
     {
-        var wallet = await _walletRepository.GetWallet(new WalletsQuery { WalletId = new []{ walletId }, IncludeTransactions = true });
+        var wallet = await _walletRepository.GetWallet(new WalletsQuery { WalletId = new[] { walletId }, IncludeTransactions = true });
         if (wallet == null)
         {
             return NotFound();
@@ -44,7 +44,7 @@ public class ExportController : Controller
             "csv" => await ToCsv(transactions),
             _ => throw new NotSupportedException("Unsupported format.")
         };
-        
+
         var cd = new ContentDisposition
         {
             FileName = $"lnbank-export-{DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)}-{wallet.WalletId}.{format}",
@@ -52,7 +52,7 @@ public class ExportController : Controller
         };
         Response.Headers.Add("Content-Disposition", cd.ToString());
         Response.Headers.Add("X-Content-Type-Options", "nosniff");
-        
+
         return Content(data, $"application/{format}");
     }
 

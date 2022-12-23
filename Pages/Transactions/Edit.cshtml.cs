@@ -18,18 +18,20 @@ public class EditModel : BasePageModel
     public Transaction Transaction { get; set; }
 
     public EditModel(
-        UserManager<ApplicationUser> userManager, 
+        UserManager<ApplicationUser> userManager,
         WalletRepository walletRepository,
-        WalletService walletService) : base(userManager, walletRepository, walletService) {}
+        WalletService walletService) : base(userManager, walletRepository, walletService) { }
 
     public async Task<IActionResult> OnGetAsync(string walletId, string transactionId)
     {
         Wallet = await GetWallet(UserId, walletId);
-        if (Wallet == null) return NotFound();
-        
+        if (Wallet == null)
+            return NotFound();
+
         Transaction = Wallet.Transactions.FirstOrDefault(t => t.TransactionId == transactionId);
 
-        if (Transaction == null) return NotFound();
+        if (Transaction == null)
+            return NotFound();
 
         return Page();
     }
@@ -37,8 +39,9 @@ public class EditModel : BasePageModel
     public async Task<IActionResult> OnPostAsync(string walletId, string transactionId)
     {
         Wallet = await GetWallet(UserId, walletId);
-        if (Wallet == null) return NotFound();
-        
+        if (Wallet == null)
+            return NotFound();
+
         Transaction = await WalletRepository.GetTransaction(new TransactionQuery
         {
             UserId = UserId,
@@ -46,8 +49,10 @@ public class EditModel : BasePageModel
             TransactionId = transactionId
         });
 
-        if (!ModelState.IsValid) return Page();
-        if (Transaction == null) return NotFound();
+        if (!ModelState.IsValid)
+            return Page();
+        if (Transaction == null)
+            return NotFound();
 
         if (await TryUpdateModelAsync(Transaction, "transaction", t => t.Description))
         {

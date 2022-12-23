@@ -39,7 +39,8 @@ When using LNbank on a third-party instance whose owner you don't know, mitigate
 ### Server admin
 
 * LNbank has to be installed and activated by the server admin via the Plugins menu.
-* When activated, LNbank is available to users regardless of the "Allow non-admins to use the internal lightning node in their stores" setting in `Server Settings > Policies`.
+* When activated, LNbank is available to users regardless of the "Allow non-admins to use the internal lightning node in
+  their stores" setting in `Server Settings > Policies`.
 * Requirements: BTCPay Server v1.6
 
 ### User

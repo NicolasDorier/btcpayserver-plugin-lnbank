@@ -10,8 +10,8 @@ using BTCPayServer.Plugins.LNbank.Data.API;
 using BTCPayServer.Plugins.LNbank.Data.Models;
 using BTCPayServer.Plugins.LNbank.Services.Wallets;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using WalletData = BTCPayServer.Plugins.LNbank.Data.API.WalletData;
 
 namespace BTCPayServer.Plugins.LNbank.Controllers.API;
@@ -29,12 +29,13 @@ public class WalletsController : ControllerBase
         _userManager = userManager;
         _walletRepository = walletRepository;
     }
-    
+
     [HttpGet("")]
     [Authorize(AuthenticationSchemes = AuthenticationSchemes.Greenfield, Policy = Policies.CanModifyProfile)]
     public async Task<IActionResult> GetWallets()
     {
-        var wallets = await _walletRepository.GetWallets(new WalletsQuery {
+        var wallets = await _walletRepository.GetWallets(new WalletsQuery
+        {
             UserId = new[] { GetUserId() },
             IncludeTransactions = true
         });
@@ -51,28 +52,28 @@ public class WalletsController : ControllerBase
         {
             return validationResult;
         }
-        
+
         var wallet = new Wallet
         {
-            UserId = GetUserId(), 
+            UserId = GetUserId(),
             Name = request.Name
         };
 
         var entry = await _walletRepository.AddOrUpdateWallet(wallet);
-        
+
         return Ok(FromModel(entry));
     }
-    
+
     [HttpGet("{walletId}")]
     [Authorize(AuthenticationSchemes = AuthenticationSchemes.Greenfield, Policy = LNbankPolicies.CanViewWallet)]
     public async Task<IActionResult> GetWallet(string walletId)
     {
         var wallet = await FetchWallet(walletId);
-        return wallet == null 
+        return wallet == null
             ? this.CreateAPIError(404, "wallet-not-found", "The wallet was not found")
             : Ok(FromModel(wallet));
     }
-    
+
     [HttpPut("{walletId}")]
     [Authorize(AuthenticationSchemes = AuthenticationSchemes.Greenfield, Policy = LNbankPolicies.CanManageWallet)]
     public async Task<IActionResult> UpdateWallet(string walletId, EditWalletRequest request)
@@ -83,14 +84,15 @@ public class WalletsController : ControllerBase
             return validationResult;
         }
 
-        var wallet = await _walletRepository.GetWallet(new WalletsQuery {
-            UserId = new []{ GetUserId() },
-            WalletId = new []{ walletId },
+        var wallet = await _walletRepository.GetWallet(new WalletsQuery
+        {
+            UserId = new[] { GetUserId() },
+            WalletId = new[] { walletId },
             IncludeTransactions = true,
             IncludeAccessKeys = true
         });
 
-        if (wallet == null) 
+        if (wallet == null)
             return this.CreateAPIError(404, "wallet-not-found", "The wallet was not found");
 
         wallet.Name = request.Name;
@@ -99,13 +101,13 @@ public class WalletsController : ControllerBase
 
         return Ok(FromModel(entry));
     }
-    
+
     [HttpDelete("{walletId}")]
     [Authorize(AuthenticationSchemes = AuthenticationSchemes.Greenfield, Policy = LNbankPolicies.CanManageWallet)]
     public async Task<IActionResult> DeleteWallet(string walletId)
     {
         var wallet = await FetchWallet(walletId);
-        if (wallet == null) 
+        if (wallet == null)
             return this.CreateAPIError(404, "wallet-not-found", "The wallet was not found");
 
         try
@@ -120,9 +122,10 @@ public class WalletsController : ControllerBase
     }
 
     private async Task<Wallet> FetchWallet(string walletId) =>
-        await _walletRepository.GetWallet(new WalletsQuery {
-            UserId = new []{ GetUserId() },
-            WalletId = new []{ walletId },
+        await _walletRepository.GetWallet(new WalletsQuery
+        {
+            UserId = new[] { GetUserId() },
+            WalletId = new[] { walletId },
             IncludeTransactions = true
         });
 

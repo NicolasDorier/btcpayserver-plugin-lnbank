@@ -164,7 +164,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support for private route hints: Will be enabled if the connected store has the required setting or if the toggle on the receive page is activated.
+- Support for private route hints: Will be enabled if the connected store has the required setting or if the toggle on
+  the receive page is activated.
 
 ### Changed
 
