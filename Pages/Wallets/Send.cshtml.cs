@@ -164,10 +164,9 @@ public class SendModel : BasePageModel
         // Abort if there's still no payment request - from here on we require a BOLT11
         if (string.IsNullOrEmpty(PaymentRequest))
         {
-            ModelState.AddModelError(nameof(PaymentRequest), "A valid BOLT11 Payment Request is required");
-        }
-        if (!ModelState.IsValid)
+            TempData[WellKnownTempData.ErrorMessage] ??= "A valid BOLT11 Payment Request is required";
             return Page();
+        }
 
         Bolt11 ??= WalletService.ParsePaymentRequest(PaymentRequest!);
 

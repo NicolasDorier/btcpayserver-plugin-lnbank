@@ -78,7 +78,7 @@ public class LNURLService
         catch (HttpRequestException ex) when (_isDevEnv &&
                                               ex.Message.StartsWith("The SSL connection could not be established"))
         {
-            UriBuilder lnurlBuilder = new UriBuilder(lnurl) { Scheme = Uri.UriSchemeHttp };
+            var lnurlBuilder = new UriBuilder(lnurl) { Scheme = Uri.UriSchemeHttp };
             return await ResolveLNURL(lnurlBuilder.Uri, lnurlTag, destination);
         }
         catch (Exception ex)
