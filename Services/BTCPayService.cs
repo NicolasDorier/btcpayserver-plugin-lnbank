@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BTCPayServer.Abstractions.Contracts;
 using BTCPayServer.Client;
 using BTCPayServer.Client.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace BTCPayServer.Plugins.LNbank.Services;
 
@@ -11,9 +13,12 @@ public class BTCPayService
 {
     public const string CryptoCode = "BTC";
     private readonly IBTCPayServerClientFactory _clientFactory;
+    public bool HasInternalNode { get; init; }
 
-    public BTCPayService(IBTCPayServerClientFactory clientFactory)
+    public BTCPayService(IBTCPayServerClientFactory clientFactory, IConfiguration config)
     {
+        var internalLightning = config.GetChildren().FirstOrDefault(a => a.Key == $"{CryptoCode}LIGHTNING");
+        HasInternalNode = !string.IsNullOrEmpty(internalLightning.Value);
         _clientFactory = clientFactory;
     }
 

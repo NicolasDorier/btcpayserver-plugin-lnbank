@@ -1,4 +1,6 @@
-﻿@model object
+﻿@inject BTCPayService btcpayService;
+@using BTCPayServer.Plugins.LNbank.Services
+@model object
 
-<input value="Custom" type="radio" id="LightningNodeType-LNbank" data-bs-toggle="pill" data-bs-target="#LNbankSetup" role="tab" aria-controls="LNbankSetup" aria-selected="false" name="LightningNodeType">
+<input value="Custom" type="radio" id="LightningNodeType-LNbank" data-bs-toggle="pill" data-bs-target="#LNbankSetup" role="tab" aria-controls="LNbankSetup" aria-selected="false" name="LightningNodeType" disabled="@(!btcpayService.HasInternalNode)">
 <label for="LightningNodeType-LNbank">Use LNbank wallet</label>

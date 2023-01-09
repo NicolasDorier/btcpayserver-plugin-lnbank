@@ -1,12 +1,13 @@
 ﻿@using BTCPayServer.Data
 @using BTCPayServer.Plugins.LNbank.Data.Models
+@using BTCPayServer.Plugins.LNbank.Services
 @using BTCPayServer.Plugins.LNbank.Services.Wallets
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Routing
 @model object
 @inject UserManager<ApplicationUser> _userManager;
 @inject WalletRepository _walletRepository;
-
+@inject BTCPayService btcpayService;
 @{
     const AccessLevel requiredLevel = AccessLevel.Admin;
     var userId = _userManager.GetUserId(User);
@@ -22,21 +23,28 @@
 }
 
 <div id="LNbankSetup" class="pt-3 tab-pane fade" role="tabpanel" aria-labelledby="LightningNodeType-LNbank">
-    <div class="form-group">
-        <div class="d-flex align-items-center justify-content-between">
-            <label class="form-label" for="LNbankWallet">LNbank Wallet</label>
-            <a href="@createWalletUrl" id="LNbank-CreateWallet" class="d-inline-block ms-2 btn text-primary btn-link p-0 mb-2">
-                <span class="fa fa-plus"></span> Create new wallet
-            </a>
+    @if (btcpayService.HasInternalNode)
+    {
+        <div class="form-group">
+            <div class="d-flex align-items-center justify-content-between">
+                <label class="form-label" for="LNbankWallet">LNbank Wallet</label>
+                <a href="@createWalletUrl" id="LNbank-CreateWallet" class="d-inline-block ms-2 btn text-primary btn-link p-0 mb-2">
+                    <span class="fa fa-plus"></span> Create new wallet
+                </a>
+            </div>
+            <select id="LNbankWallet" class="form-select">
+                <option value="">Select a wallet</option>
+                @foreach (var wallet in wallets)
+                {
+                    <option value="@wallet.AccessKeys.First(ak => ak.Level == requiredLevel).Key" data-wallet-id="@wallet.WalletId">@wallet.Name</option>
+                }
+            </select>
         </div>
-        <select id="LNbankWallet" class="form-select">
-            <option value="">Select a wallet</option>
-            @foreach (var wallet in wallets)
-            {
-                <option value="@wallet.AccessKeys.First(ak => ak.Level == requiredLevel).Key" data-wallet-id="@wallet.WalletId">@wallet.Name</option>
-            }
-        </select>
-    </div>
+    }
+    else
+    {
+        <div>LNbank requires an internal Lightning node to be configured.</div>
+    }
 </div>
 
 <script>
