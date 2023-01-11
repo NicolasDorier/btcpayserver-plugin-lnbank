@@ -89,15 +89,12 @@ public class LndhubController : ControllerBase
             IdentityPubkey = info.NodeURIs.First().NodeId.ToString(),
             BlockHeight = info.BlockHeight,
             Alias = $"LNbank: {Wallet.Name}",
-            /* FIXME: Needs this PR merged https://github.com/btcpayserver/btcpayserver/pull/4167
-            
             Color = info.Color,
             Version = info.Version,
             PeersCount = info.PeersCount.HasValue ? Convert.ToInt32(info.PeersCount.Value) : 0,
             ActiveChannelsCount = info.ActiveChannelsCount.HasValue ? Convert.ToInt32(info.ActiveChannelsCount.Value) : 0,
             InactiveChannelsCount = info.InactiveChannelsCount.HasValue ? Convert.ToInt32(info.InactiveChannelsCount.Value) : 0,
             PendingChannelsCount = info.PendingChannelsCount.HasValue ? Convert.ToInt32(info.PendingChannelsCount.Value) : 0
-            */
         };
         return Ok(result);
     }
