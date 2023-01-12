@@ -30,6 +30,29 @@
             }
         </h4>
         <!-- Debug Info: @Model.Transaction.PaymentRequest -->
+        <dl class="row" id="LNbank-TransactionDetails">
+            <dt class="col-sm-3 col-xl-2">
+                @Html.DisplayNameFor(model => model.Transaction.Description)
+            </dt>
+            <dd class="col-sm-9 col-xl-10">
+                <span id="LNbank-TransactionDescription">@Model.Transaction.Description</span>
+                <a asp-page="./Edit" asp-route-walletId="@Model.Wallet.WalletId" asp-route-transactionId="@Model.Transaction.TransactionId" class="ms-2">
+                    Edit
+                </a>
+            </dd>
+            <dt class="col-sm-3 col-xl-2">
+                @Html.DisplayNameFor(model => model.Transaction.PaidAt)
+            </dt>
+            <dd class="col-sm-9 col-xl-10" id="LNbank-TransactionPaidAt">
+                @Model.Transaction.PaidAt?.ToBrowserDate()
+            </dd>
+            <dt class="col-sm-3 col-xl-2">
+                @Html.DisplayNameFor(model => model.Transaction.PaymentHash)
+            </dt>
+            <dd class="col-sm-9 col-xl-10">
+                @Model.Transaction.PaymentHash
+            </dd>
+        </dl>
     }
     else
     {

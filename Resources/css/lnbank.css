@@ -76,3 +76,7 @@ main table .transaction-paid {
 main table tr:hover .transaction-edit {
     visibility: visible;
 }
+
+main #LNbank-TransactionDetails {
+    margin-top: var(--btcpay-space-l);
+}
