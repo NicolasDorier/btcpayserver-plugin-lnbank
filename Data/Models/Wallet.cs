@@ -33,6 +33,12 @@ public class Wallet
                 .Aggregate(LightMoney.Zero, (total, t) => total + t.AmountSettled);
     }
 
+    [NotMapped]
+    public bool HasBalance
+    {
+        get => Balance >= LightMoney.Satoshis(1);
+    }
+
     public ICollection<AccessKey> AccessKeys { get; set; } = new List<AccessKey>();
 
     [NotMapped]

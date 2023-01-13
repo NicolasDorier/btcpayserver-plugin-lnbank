@@ -8,7 +8,7 @@
 <partial name="_WalletHeader" model="Model.Wallet"/>
 <partial name="_Nav" model="Model.Wallet"/>
 
-@if (Model.Wallet.Balance > 0)
+@if (Model.Wallet.HasBalance)
 {
     <p>This wallet still has a balance. Please <a asp-page="./Send" asp-route-walletId="@Model.Wallet.WalletId">transfer the funds</a> before deleting it.</p>
 }

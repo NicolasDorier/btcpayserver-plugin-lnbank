@@ -33,7 +33,7 @@
             <dt class="col-sm-3 col-xl-2">
                 @Html.DisplayNameFor(model => model.Transaction.Description)
             </dt>
-            <dd class="col-sm-9 col-xl-10 gap-2">
+            <dd class="col-sm-9 col-xl-10 d-inline-flex align-items-center gap-2">
                 <span id="LNbank-TransactionDescription">@Model.Transaction.Description</span>
                 <a asp-page="./Edit" asp-route-walletId="@Model.Wallet.WalletId" asp-route-transactionId="@Model.Transaction.TransactionId">
                     Edit

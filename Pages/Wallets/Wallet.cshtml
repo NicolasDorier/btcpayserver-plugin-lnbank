@@ -49,10 +49,12 @@
                             </a>
                         </td>
                         <td>
-                            <span class="transaction-description text-break">@transaction.Description</span>
-                            <a asp-page="/Transactions/Edit" asp-route-walletId="@Model.Wallet.WalletId" asp-route-transactionId="@transaction.TransactionId" class="transaction-edit">
-                                Edit
-                            </a>
+                            <div class="d-inline-flex align-items-center gap-2">
+                                <span class="transaction-description text-break">@transaction.Description</span>
+                                <a asp-page="/Transactions/Edit" asp-route-walletId="@Model.Wallet.WalletId" asp-route-transactionId="@transaction.TransactionId" class="transaction-edit">
+                                    Edit
+                                </a>
+                            </div>
                         </td>
                         <td class="text-nowrap text-end transaction-amount" data-amount="@transaction.Amount.ToUnit(LightMoneyUnit.MilliSatoshi)">
                             @Helpers.Sats(transaction.Amount)

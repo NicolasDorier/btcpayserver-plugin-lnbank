@@ -140,7 +140,7 @@ public class WalletRepository
 
     public async Task RemoveWallet(Wallet wallet)
     {
-        if (wallet.Balance > 0)
+        if (wallet.HasBalance)
             throw new Exception("This wallet still has a balance.");
 
         wallet.IsSoftDeleted = true;
