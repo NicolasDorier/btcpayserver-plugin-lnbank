@@ -92,7 +92,14 @@ public class LightningController : ControllerBase
             var description = req.Description ?? bolt11.ShortDescription;
             var transaction = await _walletService.Send(wallet, bolt11, description, amount);
             var details = transaction.IsSettled
-                ? new PayDetails { TotalAmount = transaction.Amount, FeeAmount = transaction.RoutingFee }
+                ? new PayDetails
+                {
+                    Status = LightningPaymentStatus.Complete,
+                    TotalAmount = transaction.Amount,
+                    FeeAmount = transaction.RoutingFee,
+                    Preimage = string.IsNullOrEmpty(transaction.Preimage) ? null : uint256.Parse(transaction.Preimage),
+                    PaymentHash = string.IsNullOrEmpty(transaction.PaymentHash) ? null : uint256.Parse(transaction.PaymentHash),
+                }
                 : null;
             var response = new PayResponse(PayResult.Ok, details);
             return Ok(response);
@@ -278,6 +285,8 @@ public class LightningController : ControllerBase
             AmountReceived = transaction.AmountSettled,
             PaidAt = transaction.PaidAt,
             BOLT11 = transaction.PaymentRequest,
+            PaymentHash = transaction.PaymentHash,
+            Preimage = transaction.Preimage,
             ExpiresAt = transaction.ExpiresAt
         };
 
@@ -288,7 +297,7 @@ public class LightningController : ControllerBase
             PaymentHash = transaction.PaymentHash,
             Status = transaction.LightningPaymentStatus,
             BOLT11 = transaction.PaymentRequest,
-            Preimage = _walletService.ParsePaymentRequest(transaction.PaymentRequest).PaymentSecret?.ToString(),
+            Preimage = transaction.Preimage,
             CreatedAt = transaction.PaidAt,
             TotalAmount = transaction.AmountSettled,
             FeeAmount = transaction.RoutingFee,

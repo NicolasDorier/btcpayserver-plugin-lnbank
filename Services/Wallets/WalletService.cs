@@ -115,7 +115,7 @@ public class WalletService
         Transaction? receivingTransaction = await ValidatePaymentRequest(paymentRequest);
         bool isInternal = !string.IsNullOrEmpty(receivingTransaction?.InvoiceId);
 
-        Transaction sendingTransaction = new Transaction
+        var sendingTransaction = new Transaction
         {
             WalletId = wallet.WalletId,
             PaymentRequest = paymentRequest,
@@ -151,8 +151,8 @@ public class WalletService
                 EntityEntry<Transaction> sendingEntry =
                     await dbContext.Transactions.AddAsync(sendingTransaction, cancellationToken);
 
-                sendingEntry.Entity.SetSettled(sendingTransaction.Amount, sendingTransaction.AmountSettled, null, now);
-                receiveEntry.Entity.SetSettled(sendingTransaction.Amount, sendingTransaction.Amount, null, now);
+                sendingEntry.Entity.SetSettled(sendingTransaction.Amount, sendingTransaction.AmountSettled, null, now, null);
+                receiveEntry.Entity.SetSettled(sendingTransaction.Amount, sendingTransaction.Amount, null, now, null);
                 receiveEntry.State = EntityState.Modified;
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await dbTransaction.CommitAsync(cancellationToken);
@@ -208,8 +208,8 @@ public class WalletService
         try
         {
             // Pass explicit amount only for zero amount invoices, because the implementations might throw an exception otherwise
-            BOLT11PaymentRequest bolt11 = ParsePaymentRequest(sendingTransaction.PaymentRequest);
-            PayLightningInvoiceRequest request = new PayLightningInvoiceRequest
+            var bolt11 = ParsePaymentRequest(sendingTransaction.PaymentRequest);
+            var request = new PayLightningInvoiceRequest
             {
                 BOLT11 = sendingTransaction.PaymentRequest,
                 MaxFeePercent = maxFeePercent,
@@ -218,16 +218,16 @@ public class WalletService
             };
 
             LightningPaymentData? result = await _btcpayService.PayLightningInvoice(request, cancellationToken);
-
+            
             // Check result
             if (result.TotalAmount == null)
                 throw new PaymentRequestValidationException("Payment request has already been paid.");
 
             // Set amounts according to actual amounts paid, including fees
-            LightMoney settledAmount = new LightMoney(result.TotalAmount * -1);
+            LightMoney settledAmount = new (result.TotalAmount * -1);
             LightMoney? originalAmount = result.TotalAmount - result.FeeAmount;
 
-            await Settle(sendingEntry.Entity, originalAmount, settledAmount, result.FeeAmount, DateTimeOffset.UtcNow);
+            await Settle(sendingEntry.Entity, originalAmount, settledAmount, result.FeeAmount, DateTimeOffset.UtcNow, result.Preimage);
         }
         catch (GreenfieldAPIException ex)
         {
@@ -373,10 +373,10 @@ public class WalletService
     }
 
     public async Task<bool> Settle(Transaction transaction, LightMoney amount, LightMoney amountSettled,
-        LightMoney routingFee, DateTimeOffset date)
+        LightMoney routingFee, DateTimeOffset date, string preimage)
     {
         string? status = transaction.Status;
-        bool result = transaction.SetSettled(amount, amountSettled, routingFee, date);
+        bool result = transaction.SetSettled(amount, amountSettled, routingFee, date, preimage);
         if (result)
         {
             await _walletRepository.UpdateTransaction(transaction);

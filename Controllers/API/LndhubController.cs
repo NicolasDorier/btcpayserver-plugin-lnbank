@@ -241,12 +241,10 @@ public class LndhubController : ControllerBase
 
     private TransactionData ToTransactionData(Transaction t)
     {
-        var bolt11 = _walletService.ParsePaymentRequest(t.PaymentRequest);
-
         return new TransactionData
         {
-            PaymentPreimage = bolt11.PaymentSecret?.ToString(),
-            PaymentHash = bolt11.PaymentHash,
+            PaymentHash = string.IsNullOrEmpty(t.PaymentHash) ? null : uint256.Parse(t.PaymentHash),
+            PaymentPreimage = t.Preimage,
             Fee = t.RoutingFee,
             Value = t.AmountSettled.Abs(),
             Timestamp = t.CreatedAt,
@@ -256,7 +254,6 @@ public class LndhubController : ControllerBase
 
     private PaymentResponse ToPaymentResponse(Transaction t)
     {
-        var bolt11 = _walletService.ParsePaymentRequest(t.PaymentRequest);
         var error = t.Status switch
         {
             Transaction.StatusExpired => "Invoice expired",
@@ -269,8 +266,8 @@ public class LndhubController : ControllerBase
         {
             PaymentError = error,
             PaymentRequest = t.PaymentRequest,
-            PaymentPreimage = bolt11.PaymentSecret,
-            PaymentHash = bolt11.PaymentHash,
+            PaymentPreimage = string.IsNullOrEmpty(t.Preimage) ? null : uint256.Parse(t.Preimage),
+            PaymentHash = string.IsNullOrEmpty(t.PaymentHash) ? null : uint256.Parse(t.PaymentHash),
             Decoded = ToPaymentData(t),
             PaymentRoute = new PaymentRoute
             {
@@ -288,9 +285,9 @@ public class LndhubController : ControllerBase
 
         return new PaymentData
         {
-            PaymentPreimage = bolt11.PaymentSecret,
+            PaymentPreimage = string.IsNullOrEmpty(t.Preimage) ? null : uint256.Parse(t.Preimage),
+            PaymentHash = string.IsNullOrEmpty(t.PaymentHash) ? null : uint256.Parse(t.PaymentHash),
             Destination = bolt11.GetPayeePubKey().ToString(),
-            PaymentHash = bolt11.PaymentHash,
             Amount = amount,
             Description = t.Description,
             DescriptionHash = bolt11.DescriptionHash?.ToString(),

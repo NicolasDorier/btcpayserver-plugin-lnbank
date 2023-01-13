@@ -138,7 +138,7 @@ public class LightningInvoiceWatcher : BackgroundService
                     LightMoney
                         amount = invoice.Amount ?? invoice.AmountReceived; // Zero amount invoices have amount as null value
                     LightMoney feeAmount = amount - invoice.AmountReceived;
-                    await walletService.Settle(transaction, amount, invoice.AmountReceived, feeAmount, paidAt);
+                    await walletService.Settle(transaction, amount, invoice.AmountReceived, feeAmount, paidAt, transaction.Preimage);
                     break;
                 }
             case LightningInvoiceStatus.Expired:
@@ -192,7 +192,7 @@ public class LightningInvoiceWatcher : BackgroundService
                     DateTimeOffset paidAt = payment.CreatedAt ?? DateTimeOffset.Now;
                     LightMoney originalAmount = payment.TotalAmount - payment.FeeAmount;
                     await walletService.Settle(transaction, originalAmount, payment.TotalAmount * -1, payment.FeeAmount,
-                        paidAt);
+                        paidAt, payment.Preimage);
                     break;
                 }
             case LightningPaymentStatus.Failed:

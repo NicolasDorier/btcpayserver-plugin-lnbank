@@ -30,7 +30,7 @@ public class Wallet
     {
         get => Transactions
                 .Where(t => t.AmountSettled != null)
-                .Aggregate(new LightMoney(0), (total, t) => total + t.AmountSettled);
+                .Aggregate(LightMoney.Zero, (total, t) => total + t.AmountSettled);
     }
 
     public ICollection<AccessKey> AccessKeys { get; set; } = new List<AccessKey>();

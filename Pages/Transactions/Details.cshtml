@@ -9,7 +9,7 @@
 <partial name="_WalletHeader" model="Model.Wallet"/>
 
 <div class="mb-4">
-    <h2 id="LNbank-TransactionDescription">@ViewData["Title"]</h2>
+    <h2 id="LNbank-TransactionTitle">@ViewData["Title"]</h2>
     @if (Model.Transaction.IsPaid || Model.Transaction.IsSettled)
     {
         <h3 id="LNbank-TransactionSettled" class="text-@(Model.Transaction.AmountSettled > 0 ? "success" : "danger")">
@@ -29,14 +29,13 @@
                 <span>Awaiting confirmation</span>
             }
         </h4>
-        <!-- Debug Info: @Model.Transaction.PaymentRequest -->
         <dl class="row" id="LNbank-TransactionDetails">
             <dt class="col-sm-3 col-xl-2">
                 @Html.DisplayNameFor(model => model.Transaction.Description)
             </dt>
-            <dd class="col-sm-9 col-xl-10">
+            <dd class="col-sm-9 col-xl-10 gap-2">
                 <span id="LNbank-TransactionDescription">@Model.Transaction.Description</span>
-                <a asp-page="./Edit" asp-route-walletId="@Model.Wallet.WalletId" asp-route-transactionId="@Model.Transaction.TransactionId" class="ms-2">
+                <a asp-page="./Edit" asp-route-walletId="@Model.Wallet.WalletId" asp-route-transactionId="@Model.Transaction.TransactionId">
                     Edit
                 </a>
             </dd>
@@ -47,11 +46,26 @@
                 @Model.Transaction.PaidAt?.ToBrowserDate()
             </dd>
             <dt class="col-sm-3 col-xl-2">
+                @Html.DisplayNameFor(model => model.Transaction.PaymentRequest)
+            </dt>
+            <dd class="col-sm-9 col-xl-10 text-break">
+                <span class="text-truncate d-block" style="max-width:400px">@Model.Transaction.PaymentRequest</span>
+            </dd>
+            <dt class="col-sm-3 col-xl-2">
                 @Html.DisplayNameFor(model => model.Transaction.PaymentHash)
             </dt>
             <dd class="col-sm-9 col-xl-10">
                 @Model.Transaction.PaymentHash
             </dd>
+            @if (!string.IsNullOrEmpty(Model.Transaction.Preimage))
+            {
+                <dt class="col-sm-3 col-xl-2">
+                    @Html.DisplayNameFor(model => model.Transaction.Preimage)
+                </dt>
+                <dd class="col-sm-9 col-xl-10">
+                    @Model.Transaction.Preimage
+                </dd>
+            }
         </dl>
     }
     else

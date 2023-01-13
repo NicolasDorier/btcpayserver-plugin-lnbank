@@ -27,6 +27,7 @@ public class Transaction
 
     [DisplayName("Payment Hash")]
     public string PaymentHash { get; set; }
+    public string Preimage { get; set; }
 
     [DisplayName("Creation date")]
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
@@ -137,7 +138,7 @@ public class Transaction
         return true;
     }
 
-    public bool SetSettled(LightMoney amount, LightMoney amountSettled, LightMoney routingFee, DateTimeOffset date)
+    public bool SetSettled(LightMoney amount, LightMoney amountSettled, LightMoney routingFee, DateTimeOffset date, string preimage)
     {
         if (IsSettled)
             return false;
@@ -145,6 +146,7 @@ public class Transaction
         AmountSettled = amountSettled;
         RoutingFee = routingFee;
         PaidAt = date;
+        Preimage = preimage;
         ExplicitStatus = null;
         return true;
     }
