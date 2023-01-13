@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Require an internal Lightning node to be configured.
+- Add transaction details (payment hash, preimage) to view.
+- LNDhub API: Add additional node info.
+- Handle sub 1 sat (millisat) balances better. (btcpayserver/btcpayserver#4517)
+
+### Fixed
+
+- Fix Lightning Addresses for LNbank-backed stores. (btcpayserver/btcpayserver#4496)
 
 ## [1.3.8] - 2022-12-23
 
